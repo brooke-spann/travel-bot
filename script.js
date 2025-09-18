@@ -151,56 +151,23 @@ function calculateCosts() {
         return;
     }
     
-    const costs = COST_DATA[location];
+    // Calculate costs for all locations and find the cheapest
+    const allLocationCosts = calculateAllLocationCosts(attendeeBreakdown, totalAttendees, days);
+    const currentLocationCost = allLocationCosts[location];
+    const cheapestLocation = findCheapestLocation(allLocationCosts);
     
-    // Calculate local vs traveling attendees
-    let localAttendees = 0;
-    let travelingAttendees = 0;
-    
-    switch(location) {
-        case 'new-york':
-            localAttendees = attendeeBreakdown.ny;
-            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
-            break;
-        case 'san-francisco':
-            localAttendees = attendeeBreakdown.sf;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
-            break;
-        case 'denver':
-            localAttendees = attendeeBreakdown.denver;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.arizona + attendeeBreakdown.remote;
-            break;
-        case 'arizona':
-            localAttendees = attendeeBreakdown.arizona;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
-            break;
-    }
-    
-    // Calculate costs - only traveling attendees pay for flights, hotels, and uber
-    const flightCosts = costs.flight * travelingAttendees;
-    const hotelCosts = costs.hotel * travelingAttendees * days;
-    const mealCosts = costs.meals * totalAttendees * days; // Everyone eats
-    const uberCosts = costs.uber * travelingAttendees; // Only traveling attendees need transportation
-    
-    const totalCost = flightCosts + hotelCosts + mealCosts + uberCosts;
-    const costPerPerson = totalCost / totalAttendees;
-    
-    // Display results
+    // Display results with comparison
     displayResults({
-        location: costs,
+        location: COST_DATA[location],
         attendees: totalAttendees,
-        localAttendees,
-        travelingAttendees,
+        localAttendees: currentLocationCost.localAttendees,
+        travelingAttendees: currentLocationCost.travelingAttendees,
         attendeeBreakdown,
         days,
-        costs: {
-            flights: flightCosts,
-            hotel: hotelCosts,
-            meals: mealCosts,
-            uber: uberCosts,
-            total: totalCost,
-            perPerson: costPerPerson
-        }
+        costs: currentLocationCost.costs,
+        allLocationCosts,
+        cheapestLocation,
+        currentLocation: location
     });
     
     // Show results section
@@ -211,8 +178,79 @@ function calculateCosts() {
     document.getElementById('results').classList.add('active');
 }
 
+function calculateAllLocationCosts(attendeeBreakdown, totalAttendees, days) {
+    const allCosts = {};
+    
+    // Calculate costs for each location
+    Object.keys(COST_DATA).forEach(locationKey => {
+        const costs = COST_DATA[locationKey];
+        
+        // Calculate local vs traveling attendees for this location
+        let localAttendees = 0;
+        let travelingAttendees = 0;
+        
+        switch(locationKey) {
+            case 'new-york':
+                localAttendees = attendeeBreakdown.ny;
+                travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
+                break;
+            case 'san-francisco':
+                localAttendees = attendeeBreakdown.sf;
+                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
+                break;
+            case 'denver':
+                localAttendees = attendeeBreakdown.denver;
+                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.arizona + attendeeBreakdown.remote;
+                break;
+            case 'arizona':
+                localAttendees = attendeeBreakdown.arizona;
+                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
+                break;
+        }
+        
+        // Calculate costs for this location
+        const flightCosts = costs.flight * travelingAttendees;
+        const hotelCosts = costs.hotel * travelingAttendees * days;
+        const mealCosts = costs.meals * totalAttendees * days;
+        const uberCosts = costs.uber * travelingAttendees;
+        const totalCost = flightCosts + hotelCosts + mealCosts + uberCosts;
+        const costPerPerson = totalCost / totalAttendees;
+        
+        allCosts[locationKey] = {
+            locationData: costs,
+            localAttendees,
+            travelingAttendees,
+            costs: {
+                flights: flightCosts,
+                hotel: hotelCosts,
+                meals: mealCosts,
+                uber: uberCosts,
+                total: totalCost,
+                perPerson: costPerPerson
+            }
+        };
+    });
+    
+    return allCosts;
+}
+
+function findCheapestLocation(allLocationCosts) {
+    let cheapestLocation = null;
+    let lowestCost = Infinity;
+    
+    Object.keys(allLocationCosts).forEach(locationKey => {
+        const cost = allLocationCosts[locationKey].costs.total;
+        if (cost < lowestCost) {
+            lowestCost = cost;
+            cheapestLocation = locationKey;
+        }
+    });
+    
+    return cheapestLocation;
+}
+
 function displayResults(data) {
-    const { location, attendees, localAttendees, travelingAttendees, attendeeBreakdown, days, costs } = data;
+    const { location, attendees, localAttendees, travelingAttendees, attendeeBreakdown, days, costs, allLocationCosts, cheapestLocation, currentLocation, justSwitched } = data;
     
     // Create attendee breakdown display
     const breakdownDisplay = [];
@@ -222,7 +260,12 @@ function displayResults(data) {
     if (attendeeBreakdown.arizona > 0) breakdownDisplay.push(`🌵 ${attendeeBreakdown.arizona} from Arizona`);
     if (attendeeBreakdown.remote > 0) breakdownDisplay.push(`💻 ${attendeeBreakdown.remote} remote`);
     
-    // Update summary
+    // Check if there's a cheaper location
+    const isCheapest = cheapestLocation === currentLocation;
+    const savings = isCheapest ? 0 : costs.total - allLocationCosts[cheapestLocation].costs.total;
+    const cheapestLocationData = COST_DATA[cheapestLocation];
+    
+    // Update summary with comparison
     const summaryHTML = `
         <div class="location-info">
             <h3>${location.icon} ${location.name} Off-Site</h3>
@@ -234,6 +277,47 @@ function displayResults(data) {
         </div>
         <div class="total-cost">$${costs.total.toLocaleString()}</div>
         <div class="cost-per-person">$${Math.round(costs.perPerson).toLocaleString()} per person</div>
+        
+        ${justSwitched ? `
+            <div class="location-switched-confirmation">
+                <div class="confirmation-header">
+                    <h4>✅ Location Updated!</h4>
+                </div>
+                <div class="confirmation-content">
+                    <p>Your off-site location has been changed to <strong>${location.name}</strong>.</p>
+                    <p>Here's your updated cost breakdown:</p>
+                </div>
+            </div>
+        ` : !isCheapest ? `
+            <div class="cheaper-location-alert">
+                <div class="alert-header">
+                    <h4>💡 Cost-Saving Opportunity!</h4>
+                </div>
+                <div class="alert-content">
+                    <p>We found a cheaper location for your off-site:</p>
+                    <div class="cheaper-option">
+                        <div class="cheaper-location">
+                            <span class="location-name">${cheapestLocationData.icon} ${cheapestLocationData.name}</span>
+                            <span class="savings-amount">Save $${savings.toLocaleString()}</span>
+                        </div>
+                        <div class="cheaper-total">Total: $${allLocationCosts[cheapestLocation].costs.total.toLocaleString()}</div>
+                    </div>
+                    <div class="alert-actions">
+                        <button type="button" class="btn btn-success" onclick="switchToLocation('${cheapestLocation}')">
+                            Switch to ${cheapestLocationData.name}
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="dismissCheaperOption()">
+                            Keep Current Location
+                        </button>
+                    </div>
+                </div>
+            </div>
+        ` : `
+            <div class="best-price-badge">
+                <span>🏆 Best Price!</span>
+                <p>This is the most cost-effective location for your team.</p>
+            </div>
+        `}
     `;
     
     document.getElementById('cost-summary').innerHTML = summaryHTML;
@@ -439,6 +523,51 @@ function validateAttendeeBreakdown() {
     }
     
     return true;
+}
+
+function switchToLocation(newLocation) {
+    // Update the current form data
+    currentFormData.location = newLocation;
+    
+    // Recalculate with the new location
+    const totalAttendees = parseInt(currentFormData.attendees);
+    const days = parseInt(currentFormData.days);
+    
+    const attendeeBreakdown = {
+        ny: parseInt(currentFormData['attendees-ny']) || 0,
+        sf: parseInt(currentFormData['attendees-sf']) || 0,
+        denver: parseInt(currentFormData['attendees-denver']) || 0,
+        arizona: parseInt(currentFormData['attendees-arizona']) || 0,
+        remote: parseInt(currentFormData['attendees-remote']) || 0
+    };
+    
+    // Calculate costs for all locations again
+    const allLocationCosts = calculateAllLocationCosts(attendeeBreakdown, totalAttendees, days);
+    const newLocationCost = allLocationCosts[newLocation];
+    const cheapestLocation = findCheapestLocation(allLocationCosts);
+    
+    // Display results with the new location
+    displayResults({
+        location: COST_DATA[newLocation],
+        attendees: totalAttendees,
+        localAttendees: newLocationCost.localAttendees,
+        travelingAttendees: newLocationCost.travelingAttendees,
+        attendeeBreakdown,
+        days,
+        costs: newLocationCost.costs,
+        allLocationCosts,
+        cheapestLocation,
+        currentLocation: newLocation,
+        justSwitched: true
+    });
+}
+
+function dismissCheaperOption() {
+    // Hide the cheaper location alert
+    const alert = document.querySelector('.cheaper-location-alert');
+    if (alert) {
+        alert.style.display = 'none';
+    }
 }
 
 // Initialize the app

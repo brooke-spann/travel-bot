@@ -366,6 +366,131 @@ header p {
     border-left: 3px solid #22c55e;
 }
 
+/* Cheaper location alert styles */
+.cheaper-location-alert {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border: 2px solid #f59e0b;
+    border-radius: 15px;
+    padding: 25px;
+    margin: 20px 0;
+    animation: slideIn 0.5s ease-out;
+}
+
+.cheaper-location-alert .alert-header h4 {
+    color: #92400e;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.cheaper-location-alert .alert-content p {
+    color: #78350f;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.cheaper-option {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 15px 0;
+}
+
+.cheaper-location {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.location-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #92400e;
+}
+
+.savings-amount {
+    background: #10b981;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.cheaper-total {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #065f46;
+}
+
+.alert-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.alert-actions .btn {
+    flex: 1;
+}
+
+/* Location switched confirmation */
+.location-switched-confirmation {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    border: 2px solid #10b981;
+    border-radius: 15px;
+    padding: 25px;
+    margin: 20px 0;
+    animation: slideIn 0.5s ease-out;
+}
+
+.location-switched-confirmation .confirmation-header h4 {
+    color: #065f46;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.location-switched-confirmation .confirmation-content p {
+    color: #047857;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+/* Best price badge */
+.best-price-badge {
+    background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+    border: 2px solid #8b5cf6;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.best-price-badge span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #5b21b6;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.best-price-badge p {
+    color: #6d28d9;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Animation for alerts */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .container {
@@ -390,6 +515,16 @@ header p {
     
     .total-cost {
         font-size: 2.5rem;
+    }
+    
+    .alert-actions {
+        flex-direction: column;
+    }
+    
+    .cheaper-location {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
 }
 
