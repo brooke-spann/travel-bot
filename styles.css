@@ -7,9 +7,9 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F45D48 0%, #0A8080 100%);
     min-height: 100vh;
-    color: #333;
+    color: #222525;
 }
 
 .container {
@@ -61,7 +61,7 @@ header p {
 .form-section h2 {
     font-size: 1.8rem;
     margin-bottom: 30px;
-    color: #4a5568;
+    color: #222525;
     text-align: center;
 }
 
@@ -75,18 +75,18 @@ header p {
 
 .location-card {
     cursor: pointer;
-    border: 3px solid #e2e8f0;
+    border: 3px solid #D3D3D3;
     border-radius: 15px;
     padding: 20px;
     text-align: center;
     transition: all 0.3s ease;
-    background: #f8fafc;
+    background: #FEEEE7;
 }
 
 .location-card:hover {
-    border-color: #667eea;
+    border-color: #F45D48;
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 10px 25px rgba(244, 93, 72, 0.15);
 }
 
 .location-card input[type="radio"] {
@@ -94,18 +94,18 @@ header p {
 }
 
 .location-card input[type="radio"]:checked + .card-content {
-    color: #667eea;
+    color: #F45D48;
 }
 
 .location-card input[type="radio"]:checked {
     & ~ * {
-        border-color: #667eea;
+        border-color: #F45D48;
     }
 }
 
 .location-card:has(input[type="radio"]:checked) {
-    border-color: #667eea;
-    background: linear-gradient(135deg, #667eea10, #764ba210);
+    border-color: #F45D48;
+    background: linear-gradient(135deg, rgba(244, 93, 72, 0.1), rgba(10, 128, 128, 0.1));
 }
 
 .location-icon {
@@ -116,11 +116,11 @@ header p {
 .card-content h3 {
     font-size: 1.3rem;
     margin-bottom: 8px;
-    color: #2d3748;
+    color: #222525;
 }
 
 .card-content p {
-    color: #718096;
+    color: #4E5151;
     font-size: 0.9rem;
 }
 
@@ -132,7 +132,7 @@ header p {
 /* Step description */
 .step-description {
     text-align: center;
-    color: #718096;
+    color: #4E5151;
     margin-bottom: 30px;
     font-size: 1rem;
     line-height: 1.5;
@@ -147,8 +147,8 @@ header p {
 }
 
 .breakdown-item {
-    background: #f8fafc;
-    border: 2px solid #e2e8f0;
+    background: #F7F3F2;
+    border: 2px solid #D3D3D3;
     border-radius: 10px;
     padding: 20px;
     text-align: center;
@@ -156,21 +156,21 @@ header p {
 }
 
 .breakdown-item:focus-within {
-    border-color: #667eea;
+    border-color: #F45D48;
 }
 
 .breakdown-item label {
     display: block;
     font-weight: 600;
     margin-bottom: 10px;
-    color: #4a5568;
+    color: #222525;
     font-size: 1.1rem;
 }
 
 .breakdown-item input[type="number"] {
     width: 100%;
     padding: 12px;
-    border: 1px solid #cbd5e0;
+    border: 1px solid #D3D3D3;
     border-radius: 8px;
     font-size: 1.2rem;
     text-align: center;
@@ -180,37 +180,37 @@ header p {
 
 .breakdown-item input[type="number"]:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #F45D48;
+    box-shadow: 0 0 0 3px rgba(244, 93, 72, 0.1);
 }
 
 .attendee-summary {
     text-align: center;
     margin-bottom: 30px;
     padding: 15px;
-    background: #f0f9ff;
+    background: #FEEEE7;
     border-radius: 10px;
-    border: 1px solid #bfdbfe;
+    border: 1px solid #FBBEB6;
 }
 
 .attendee-summary span {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1e40af;
+    color: #0A8080;
 }
 
 .input-group label {
     display: block;
     font-weight: 600;
     margin-bottom: 10px;
-    color: #4a5568;
+    color: #222525;
     font-size: 1.1rem;
 }
 
 .input-group input[type="number"] {
     width: 100%;
     padding: 15px;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #D3D3D3;
     border-radius: 10px;
     font-size: 1.1rem;
     transition: border-color 0.3s ease;
@@ -218,8 +218,8 @@ header p {
 
 .input-group input[type="number"]:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #F45D48;
+    box-shadow: 0 0 0 3px rgba(244, 93, 72, 0.1);
 }
 
 /* Buttons */
@@ -236,32 +236,32 @@ header p {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #F45D48, #0A8080);
     color: white;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 20px rgba(244, 93, 72, 0.3);
 }
 
 .btn-secondary {
-    background: #e2e8f0;
-    color: #4a5568;
+    background: #D3D3D3;
+    color: #222525;
 }
 
 .btn-secondary:hover {
-    background: #cbd5e0;
+    background: #A7A8A8;
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #48bb78, #38a169);
+    background: linear-gradient(135deg, #0A8080, #3B9999);
     color: white;
 }
 
 .btn-success:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3);
+    box-shadow: 0 10px 20px rgba(10, 128, 128, 0.3);
 }
 
 /* Step navigation */
@@ -277,7 +277,7 @@ header p {
 
 /* Results */
 .cost-summary {
-    background: linear-gradient(135deg, #667eea10, #764ba210);
+    background: linear-gradient(135deg, rgba(244, 93, 72, 0.1), rgba(10, 128, 128, 0.1));
     border-radius: 15px;
     padding: 30px;
     margin-bottom: 30px;
@@ -287,17 +287,17 @@ header p {
 .total-cost {
     font-size: 3rem;
     font-weight: bold;
-    color: #667eea;
+    color: #F45D48;
     margin-bottom: 10px;
 }
 
 .cost-per-person {
     font-size: 1.2rem;
-    color: #718096;
+    color: #4E5151;
 }
 
 .cost-details {
-    background: #f8fafc;
+    background: #F7F3F2;
     border-radius: 15px;
     padding: 30px;
     margin-bottom: 30px;
@@ -313,14 +313,14 @@ header p {
     justify-content: space-between;
     align-items: center;
     padding: 15px 0;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #D3D3D3;
 }
 
 .cost-item:last-child {
     border-bottom: none;
     font-weight: bold;
     font-size: 1.2rem;
-    color: #667eea;
+    color: #F45D48;
 }
 
 .cost-label {
@@ -329,20 +329,20 @@ header p {
 
 .cost-value {
     font-weight: 600;
-    color: #2d3748;
+    color: #222525;
 }
 
 /* Location info */
 .location-info {
-    background: #f0f9ff;
-    border-left: 4px solid #0ea5e9;
+    background: #FEEEE7;
+    border-left: 4px solid #0A8080;
     padding: 20px;
     margin-bottom: 20px;
     border-radius: 0 10px 10px 0;
 }
 
 .location-info h3 {
-    color: #0c4a6e;
+    color: #0A8080;
     margin-bottom: 10px;
 }
 
@@ -352,24 +352,24 @@ header p {
     background: rgba(255, 255, 255, 0.7);
     border-radius: 8px;
     font-size: 0.9rem;
-    color: #475569;
+    color: #4E5151;
 }
 
 .local-savings {
     margin-top: 15px;
     padding: 10px;
-    background: #f0fdf4;
+    background: #CEE6E6;
     border-radius: 8px;
-    color: #166534;
+    color: #0A8080;
     font-size: 0.9rem;
     font-weight: 500;
-    border-left: 3px solid #22c55e;
+    border-left: 3px solid #0A8080;
 }
 
 /* Cheaper location alert styles */
 .cheaper-location-alert {
-    background: linear-gradient(135deg, #fef3c7, #fde68a);
-    border: 2px solid #f59e0b;
+    background: linear-gradient(135deg, #FDDFDA, #FBBEB6);
+    border: 2px solid #F45D48;
     border-radius: 15px;
     padding: 25px;
     margin: 20px 0;
@@ -377,13 +377,13 @@ header p {
 }
 
 .cheaper-location-alert .alert-header h4 {
-    color: #92400e;
+    color: #F45D48;
     margin-bottom: 15px;
     font-size: 1.3rem;
 }
 
 .cheaper-location-alert .alert-content p {
-    color: #78350f;
+    color: #222525;
     margin-bottom: 15px;
     font-size: 1rem;
 }
@@ -405,11 +405,11 @@ header p {
 .location-name {
     font-size: 1.2rem;
     font-weight: 600;
-    color: #92400e;
+    color: #F45D48;
 }
 
 .savings-amount {
-    background: #10b981;
+    background: #0A8080;
     color: white;
     padding: 5px 12px;
     border-radius: 20px;
@@ -420,7 +420,7 @@ header p {
 .cheaper-total {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #065f46;
+    color: #0A8080;
 }
 
 .alert-actions {
@@ -435,8 +435,8 @@ header p {
 
 /* Location switched confirmation */
 .location-switched-confirmation {
-    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-    border: 2px solid #10b981;
+    background: linear-gradient(135deg, #CEE6E6, #9DCCCC);
+    border: 2px solid #0A8080;
     border-radius: 15px;
     padding: 25px;
     margin: 20px 0;
@@ -444,21 +444,21 @@ header p {
 }
 
 .location-switched-confirmation .confirmation-header h4 {
-    color: #065f46;
+    color: #0A8080;
     margin-bottom: 15px;
     font-size: 1.3rem;
 }
 
 .location-switched-confirmation .confirmation-content p {
-    color: #047857;
+    color: #222525;
     margin-bottom: 10px;
     font-size: 1rem;
 }
 
 /* Best price badge */
 .best-price-badge {
-    background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
-    border: 2px solid #8b5cf6;
+    background: linear-gradient(135deg, #FDDFDA, #F89E91);
+    border: 2px solid #F45D48;
     border-radius: 15px;
     padding: 20px;
     margin: 20px 0;
@@ -468,13 +468,13 @@ header p {
 .best-price-badge span {
     font-size: 1.2rem;
     font-weight: 600;
-    color: #5b21b6;
+    color: #F45D48;
     display: block;
     margin-bottom: 8px;
 }
 
 .best-price-badge p {
-    color: #6d28d9;
+    color: #222525;
     font-size: 0.95rem;
     margin: 0;
 }
@@ -493,24 +493,24 @@ header p {
 
 /* File upload styles */
 .file-upload-area {
-    border: 3px dashed #cbd5e0;
+    border: 3px dashed #D3D3D3;
     border-radius: 15px;
     padding: 40px 20px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    background: #f8fafc;
+    background: #FEEEE7;
     margin-bottom: 30px;
 }
 
 .file-upload-area:hover {
-    border-color: #667eea;
-    background: #f0f9ff;
+    border-color: #F45D48;
+    background: #F7F3F2;
 }
 
 .file-upload-area.dragover {
-    border-color: #667eea;
-    background: linear-gradient(135deg, #667eea10, #764ba210);
+    border-color: #F45D48;
+    background: linear-gradient(135deg, rgba(244, 93, 72, 0.1), rgba(10, 128, 128, 0.1));
 }
 
 .upload-icon {
@@ -521,31 +521,31 @@ header p {
 .upload-text {
     font-size: 1.2rem;
     font-weight: 600;
-    color: #4a5568;
+    color: #222525;
     margin-bottom: 8px;
 }
 
 .upload-subtext {
-    color: #718096;
+    color: #4E5151;
     font-size: 0.9rem;
 }
 
 /* File preview styles */
 .file-preview {
-    background: #f0fdf4;
-    border: 2px solid #bbf7d0;
+    background: #CEE6E6;
+    border: 2px solid #9DCCCC;
     border-radius: 15px;
     padding: 25px;
     margin-bottom: 30px;
 }
 
 .file-preview h3 {
-    color: #166534;
+    color: #0A8080;
     margin-bottom: 15px;
 }
 
 .preview-info {
-    color: #047857;
+    color: #0A8080;
     font-weight: 600;
     margin-top: 15px;
 }
@@ -559,8 +559,8 @@ header p {
     font-family: monospace;
     font-size: 0.9rem;
     line-height: 1.4;
-    color: #374151;
-    border: 1px solid #d1d5db;
+    color: #222525;
+    border: 1px solid #D3D3D3;
 }
 
 /* Employee selection styles */
@@ -578,7 +578,7 @@ header p {
 .search-input {
     flex: 1;
     padding: 12px 16px;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #D3D3D3;
     border-radius: 10px;
     font-size: 1rem;
     transition: border-color 0.3s ease;
@@ -586,8 +586,8 @@ header p {
 
 .search-input:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #F45D48;
+    box-shadow: 0 0 0 3px rgba(244, 93, 72, 0.1);
 }
 
 .search-actions {
@@ -602,8 +602,8 @@ header p {
 
 /* Employee list */
 .employee-list {
-    background: #f8fafc;
-    border: 2px solid #e2e8f0;
+    background: #F7F3F2;
+    border: 2px solid #D3D3D3;
     border-radius: 15px;
     padding: 20px;
     max-height: 400px;
@@ -618,13 +618,13 @@ header p {
     margin-bottom: 8px;
     background: white;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #D3D3D3;
     transition: all 0.2s ease;
 }
 
 .employee-item:hover {
-    background: #f0f9ff;
-    border-color: #bfdbfe;
+    background: #FEEEE7;
+    border-color: #FBBEB6;
 }
 
 .employee-item:last-child {
@@ -647,12 +647,12 @@ header p {
 
 .employee-name {
     font-weight: 600;
-    color: #2d3748;
+    color: #222525;
 }
 
 .employee-location {
     font-size: 0.9rem;
-    color: #718096;
+    color: #4E5151;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -666,29 +666,29 @@ header p {
 }
 
 .location-sf {
-    background: #dbeafe;
-    color: #1e40af;
+    background: #FBBEB6;
+    color: #F45D48;
 }
 
 .location-ny {
-    background: #fef3c7;
-    color: #92400e;
+    background: #CEE6E6;
+    color: #0A8080;
 }
 
 .location-denver {
-    background: #e0f2fe;
-    color: #0369a1;
+    background: #9DCCCC;
+    color: #0A8080;
 }
 
 .location-remote {
-    background: #f3e8ff;
-    color: #7c3aed;
+    background: #F89E91;
+    color: #F45D48;
 }
 
 /* Selection summary */
 .selection-summary {
-    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-    border: 2px solid #bfdbfe;
+    background: linear-gradient(135deg, #FEEEE7, #CEE6E6);
+    border: 2px solid #FBBEB6;
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 30px;
@@ -710,13 +710,13 @@ header p {
     display: block;
     font-size: 1.8rem;
     font-weight: bold;
-    color: #1e40af;
+    color: #0A8080;
     line-height: 1;
 }
 
 .stat-label {
     font-size: 0.9rem;
-    color: #475569;
+    color: #4E5151;
     font-weight: 500;
 }
 
