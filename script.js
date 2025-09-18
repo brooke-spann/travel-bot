@@ -26,14 +26,312 @@ const COST_DATA = {
     }
 };
 
+// Global variables
 let currentFormData = {};
+let employeeData = [];
+let selectedEmployees = [];
+
+// File upload and parsing functions
+function initializeFileUpload() {
+    const fileInput = document.getElementById('file-input');
+    const uploadArea = document.getElementById('file-upload-area');
+    
+    // Click to upload
+    uploadArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+}
+
+function handleFile(file) {
+    const fileName = file.name;
+    const fileExtension = fileName.split('.').pop().toLowerCase();
+    
+    if (!['csv', 'xlsx', 'xls'].includes(fileExtension)) {
+        showError('Please upload a CSV or Excel file (.csv, .xlsx, .xls)');
+        return;
+    }
+    
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            let data;
+            
+            if (fileExtension === 'csv') {
+                data = parseCSV(e.target.result);
+            } else {
+                data = parseExcel(e.target.result);
+            }
+            
+            if (data && data.length > 0) {
+                employeeData = data;
+                showFilePreview(data, fileName);
+                document.getElementById('continue-btn').style.display = 'block';
+            } else {
+                showError('No employee data found in the file. Please check the format.');
+            }
+        } catch (error) {
+            console.error('Error parsing file:', error);
+            showError('Error reading the file. Please check the format and try again.');
+        }
+    };
+    
+    if (fileExtension === 'csv') {
+        reader.readAsText(file);
+    } else {
+        reader.readAsArrayBuffer(file);
+    }
+}
+
+function parseCSV(csvText) {
+    const lines = csvText.split('\n');
+    const employees = [];
+    
+    // Skip header row and process data
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const columns = parseCSVLine(line);
+        if (columns.length >= 12) {
+            const name = columns[0]?.trim();
+            const location = columns[11]?.trim(); // Column L (index 11)
+            
+            if (name) {
+                employees.push({
+                    name: name,
+                    location: location || 'Unknown',
+                    category: categorizeLocation(location)
+                });
+            }
+        }
+    }
+    
+    return employees;
+}
+
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    result.push(current);
+    return result;
+}
+
+function parseExcel(arrayBuffer) {
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    
+    const employees = [];
+    
+    // Skip header row and process data
+    for (let i = 1; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        if (row && row.length >= 12) {
+            const name = row[0]?.toString().trim();
+            const location = row[11]?.toString().trim(); // Column L (index 11)
+            
+            if (name) {
+                employees.push({
+                    name: name,
+                    location: location || 'Unknown',
+                    category: categorizeLocation(location)
+                });
+            }
+        }
+    }
+    
+    return employees;
+}
+
+function categorizeLocation(location) {
+    if (!location) return 'remote';
+    
+    const loc = location.toLowerCase().trim();
+    
+    if (loc.includes('san francisco') || loc.includes('sf') || loc === 'san francisco') {
+        return 'san-francisco';
+    } else if (loc.includes('new york') || loc.includes('ny') || loc === 'new york') {
+        return 'new-york';
+    } else if (loc.includes('denver') || loc === 'denver') {
+        return 'denver';
+    } else {
+        return 'remote';
+    }
+}
+
+function showFilePreview(data, fileName) {
+    const preview = document.getElementById('file-preview');
+    const content = document.getElementById('preview-content');
+    const count = document.getElementById('employee-count');
+    
+    // Show first 10 employees as preview
+    const previewData = data.slice(0, 10);
+    let previewHTML = `<strong>File:</strong> ${fileName}<br><br>`;
+    previewHTML += '<strong>Sample employees:</strong><br>';
+    
+    previewData.forEach(emp => {
+        previewHTML += `${emp.name} - ${emp.location}<br>`;
+    });
+    
+    if (data.length > 10) {
+        previewHTML += `<br>... and ${data.length - 10} more employees`;
+    }
+    
+    content.innerHTML = previewHTML;
+    count.textContent = data.length;
+    preview.style.display = 'block';
+}
+
+// Employee selection functions
+function populateEmployeeList() {
+    const employeeList = document.getElementById('employee-list');
+    const searchInput = document.getElementById('employee-search');
+    
+    function renderEmployees(employees = employeeData) {
+        employeeList.innerHTML = '';
+        
+        employees.forEach((employee, index) => {
+            const item = document.createElement('div');
+            item.className = 'employee-item';
+            
+            const locationIcon = getLocationIcon(employee.category);
+            const locationClass = `location-${employee.category}`;
+            
+            item.innerHTML = `
+                <input type="checkbox" class="employee-checkbox" id="emp-${index}" 
+                       data-index="${index}" onchange="updateSelection()">
+                <div class="employee-info">
+                    <label for="emp-${index}" class="employee-name">${employee.name}</label>
+                    <div class="employee-location">
+                        <span class="location-badge ${locationClass}">
+                            ${locationIcon} ${employee.location}
+                        </span>
+                    </div>
+                </div>
+            `;
+            
+            employeeList.appendChild(item);
+        });
+    }
+    
+    // Initial render
+    renderEmployees();
+    
+    // Search functionality
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredEmployees = employeeData.filter(emp => 
+            emp.name.toLowerCase().includes(searchTerm) ||
+            emp.location.toLowerCase().includes(searchTerm)
+        );
+        renderEmployees(filteredEmployees);
+    });
+}
+
+function getLocationIcon(category) {
+    switch(category) {
+        case 'san-francisco': return '🌉';
+        case 'new-york': return '🗽';
+        case 'denver': return '🏔️';
+        case 'remote': return '💻';
+        default: return '📍';
+    }
+}
+
+function updateSelection() {
+    const checkboxes = document.querySelectorAll('.employee-checkbox');
+    selectedEmployees = [];
+    
+    let counts = {
+        'san-francisco': 0,
+        'new-york': 0,
+        'denver': 0,
+        'remote': 0
+    };
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            const index = parseInt(checkbox.dataset.index);
+            const employee = employeeData[index];
+            selectedEmployees.push(employee);
+            counts[employee.category]++;
+        }
+    });
+    
+    // Update summary stats
+    document.getElementById('selected-count').textContent = selectedEmployees.length;
+    document.getElementById('sf-count').textContent = counts['san-francisco'];
+    document.getElementById('ny-count').textContent = counts['new-york'];
+    document.getElementById('denver-count').textContent = counts['denver'];
+    document.getElementById('remote-count').textContent = counts['remote'];
+}
+
+function selectAll() {
+    const checkboxes = document.querySelectorAll('.employee-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateSelection();
+}
+
+function clearAll() {
+    const checkboxes = document.querySelectorAll('.employee-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateSelection();
+}
 
 // Navigation functions
 function nextStep(stepNumber) {
     if (validateCurrentStep()) {
-        // Special handling for step 3 (attendee breakdown)
+        // Special handling for step 3 (employee selection)
         if (stepNumber === 3) {
-            updateAttendeeBreakdownDisplay();
+            populateEmployeeList();
         }
         showStep(stepNumber);
         saveCurrentStepData();
@@ -58,9 +356,22 @@ function validateCurrentStep() {
     const activeStep = document.querySelector('.form-section.active');
     const stepId = activeStep.id;
     
-    // Special validation for attendee breakdown step
+    // Special validation for employee selection step
     if (stepId === 'step-3') {
-        return validateAttendeeBreakdown();
+        if (selectedEmployees.length === 0) {
+            showError('Please select at least one employee for the off-site.');
+            return false;
+        }
+        return true;
+    }
+    
+    // Special validation for file upload step
+    if (stepId === 'step-1') {
+        if (employeeData.length === 0) {
+            showError('Please upload a file with employee data first.');
+            return false;
+        }
+        return true;
     }
     
     const requiredInputs = activeStep.querySelectorAll('input[required]');
@@ -83,6 +394,9 @@ function saveCurrentStepData() {
     for (let [key, value] of formData.entries()) {
         currentFormData[key] = value;
     }
+    
+    // Save selected employees
+    currentFormData.selectedEmployees = selectedEmployees;
 }
 
 function showError(message) {
@@ -126,34 +440,39 @@ function calculateCosts() {
     saveCurrentStepData();
     
     const location = currentFormData.location;
-    const totalAttendees = parseInt(currentFormData.attendees);
     const days = parseInt(currentFormData.days);
+    const employees = selectedEmployees;
     
-    // Get attendee breakdown
-    const attendeeBreakdown = {
-        ny: parseInt(currentFormData['attendees-ny']) || 0,
-        sf: parseInt(currentFormData['attendees-sf']) || 0,
-        denver: parseInt(currentFormData['attendees-denver']) || 0,
-        remote: parseInt(currentFormData['attendees-remote']) || 0
-    };
-    
-    if (!location || !totalAttendees || !days) {
+    if (!location || !days || employees.length === 0) {
         showError('Please complete all steps before calculating costs.');
         return;
     }
     
+    // Calculate attendee breakdown by category
+    const attendeeBreakdown = {
+        'san-francisco': 0,
+        'new-york': 0,
+        'denver': 0,
+        'remote': 0
+    };
+    
+    employees.forEach(emp => {
+        attendeeBreakdown[emp.category]++;
+    });
+    
     // Calculate costs for all locations and find the cheapest
-    const allLocationCosts = calculateAllLocationCosts(attendeeBreakdown, totalAttendees, days);
+    const allLocationCosts = calculateAllLocationCosts(attendeeBreakdown, employees.length, days);
     const currentLocationCost = allLocationCosts[location];
     const cheapestLocation = findCheapestLocation(allLocationCosts);
     
     // Display results with comparison
     displayResults({
         location: COST_DATA[location],
-        attendees: totalAttendees,
+        attendees: employees.length,
         localAttendees: currentLocationCost.localAttendees,
         travelingAttendees: currentLocationCost.travelingAttendees,
         attendeeBreakdown,
+        selectedEmployees: employees,
         days,
         costs: currentLocationCost.costs,
         allLocationCosts,
@@ -182,16 +501,16 @@ function calculateAllLocationCosts(attendeeBreakdown, totalAttendees, days) {
         
         switch(locationKey) {
             case 'new-york':
-                localAttendees = attendeeBreakdown.ny;
-                travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
+                localAttendees = attendeeBreakdown['new-york'];
+                travelingAttendees = attendeeBreakdown['san-francisco'] + attendeeBreakdown['denver'] + attendeeBreakdown['remote'];
                 break;
             case 'san-francisco':
-                localAttendees = attendeeBreakdown.sf;
-                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.remote;
+                localAttendees = attendeeBreakdown['san-francisco'];
+                travelingAttendees = attendeeBreakdown['new-york'] + attendeeBreakdown['denver'] + attendeeBreakdown['remote'];
                 break;
             case 'denver':
-                localAttendees = attendeeBreakdown.denver;
-                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.remote;
+                localAttendees = attendeeBreakdown['denver'];
+                travelingAttendees = attendeeBreakdown['new-york'] + attendeeBreakdown['san-francisco'] + attendeeBreakdown['remote'];
                 break;
         }
         
@@ -237,14 +556,14 @@ function findCheapestLocation(allLocationCosts) {
 }
 
 function displayResults(data) {
-    const { location, attendees, localAttendees, travelingAttendees, attendeeBreakdown, days, costs, allLocationCosts, cheapestLocation, currentLocation, justSwitched } = data;
+    const { location, attendees, localAttendees, travelingAttendees, attendeeBreakdown, selectedEmployees, days, costs, allLocationCosts, cheapestLocation, currentLocation, justSwitched } = data;
     
-    // Create attendee breakdown display
+    // Create attendee breakdown display by location
     const breakdownDisplay = [];
-    if (attendeeBreakdown.ny > 0) breakdownDisplay.push(`🗽 ${attendeeBreakdown.ny} from New York`);
-    if (attendeeBreakdown.sf > 0) breakdownDisplay.push(`🌉 ${attendeeBreakdown.sf} from San Francisco`);
-    if (attendeeBreakdown.denver > 0) breakdownDisplay.push(`🏔️ ${attendeeBreakdown.denver} from Denver`);
-    if (attendeeBreakdown.remote > 0) breakdownDisplay.push(`💻 ${attendeeBreakdown.remote} remote`);
+    if (attendeeBreakdown['new-york'] > 0) breakdownDisplay.push(`🗽 ${attendeeBreakdown['new-york']} from New York`);
+    if (attendeeBreakdown['san-francisco'] > 0) breakdownDisplay.push(`🌉 ${attendeeBreakdown['san-francisco']} from San Francisco`);
+    if (attendeeBreakdown['denver'] > 0) breakdownDisplay.push(`🏔️ ${attendeeBreakdown['denver']} from Denver`);
+    if (attendeeBreakdown['remote'] > 0) breakdownDisplay.push(`💻 ${attendeeBreakdown['remote']} remote`);
     
     // Check if there's a cheaper location
     const isCheapest = cheapestLocation === currentLocation;
@@ -255,7 +574,7 @@ function displayResults(data) {
     const summaryHTML = `
         <div class="location-info">
             <h3>${location.icon} ${location.name} Off-Site</h3>
-            <p><strong>${attendees}</strong> attendees for <strong>${days}</strong> ${days === 1 ? 'day' : 'days'}</p>
+            <p><strong>${attendees}</strong> selected employees for <strong>${days}</strong> ${days === 1 ? 'day' : 'days'}</p>
             <div class="attendee-breakdown-summary">
                 ${breakdownDisplay.join(' • ')}
             </div>
@@ -343,6 +662,13 @@ function displayResults(data) {
                 <li><strong>Uber:</strong> $${location.uber} per person (2 trips at $50 each)</li>
             </ul>
         </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <h4 style="color: #374151; margin-bottom: 10px;">👥 Selected Employees (${selectedEmployees.length}):</h4>
+            <div style="max-height: 200px; overflow-y: auto; font-size: 0.9rem; line-height: 1.4;">
+                ${selectedEmployees.map(emp => `<div style="margin-bottom: 5px;">${getLocationIcon(emp.category)} ${emp.name} (${emp.location})</div>`).join('')}
+            </div>
+        </div>
     `;
     
     document.getElementById('cost-details').innerHTML = detailsHTML;
@@ -350,23 +676,31 @@ function displayResults(data) {
 
 function startOver() {
     currentFormData = {};
+    employeeData = [];
+    selectedEmployees = [];
     document.getElementById('offsite-form').reset();
     document.getElementById('results').style.display = 'none';
+    document.getElementById('file-preview').style.display = 'none';
+    document.getElementById('continue-btn').style.display = 'none';
     showStep(1);
 }
 
 function exportResults() {
     const location = COST_DATA[currentFormData.location];
-    const totalAttendees = parseInt(currentFormData.attendees);
     const days = parseInt(currentFormData.days);
+    const employees = selectedEmployees;
     
-    // Get attendee breakdown
+    // Calculate attendee breakdown by category
     const attendeeBreakdown = {
-        ny: parseInt(currentFormData['attendees-ny']) || 0,
-        sf: parseInt(currentFormData['attendees-sf']) || 0,
-        denver: parseInt(currentFormData['attendees-denver']) || 0,
-        remote: parseInt(currentFormData['attendees-remote']) || 0
+        'san-francisco': 0,
+        'new-york': 0,
+        'denver': 0,
+        'remote': 0
     };
+    
+    employees.forEach(emp => {
+        attendeeBreakdown[emp.category]++;
+    });
     
     // Calculate local vs traveling attendees
     let localAttendees = 0;
@@ -374,16 +708,16 @@ function exportResults() {
     
     switch(currentFormData.location) {
         case 'new-york':
-            localAttendees = attendeeBreakdown.ny;
-            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            localAttendees = attendeeBreakdown['new-york'];
+            travelingAttendees = attendeeBreakdown['san-francisco'] + attendeeBreakdown['denver'] + attendeeBreakdown['remote'];
             break;
         case 'san-francisco':
-            localAttendees = attendeeBreakdown.sf;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            localAttendees = attendeeBreakdown['san-francisco'];
+            travelingAttendees = attendeeBreakdown['new-york'] + attendeeBreakdown['denver'] + attendeeBreakdown['remote'];
             break;
         case 'denver':
-            localAttendees = attendeeBreakdown.denver;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.remote;
+            localAttendees = attendeeBreakdown['denver'];
+            travelingAttendees = attendeeBreakdown['new-york'] + attendeeBreakdown['san-francisco'] + attendeeBreakdown['remote'];
             break;
     }
     
@@ -391,23 +725,23 @@ function exportResults() {
     const costs = COST_DATA[currentFormData.location];
     const flightCosts = costs.flight * travelingAttendees;
     const hotelCosts = costs.hotel * travelingAttendees * days;
-    const mealCosts = costs.meals * totalAttendees * days;
+    const mealCosts = costs.meals * employees.length * days;
     const uberCosts = costs.uber * travelingAttendees;
     const totalCost = flightCosts + hotelCosts + mealCosts + uberCosts;
     
     // Create attendee breakdown text
     const breakdownText = [];
-    if (attendeeBreakdown.ny > 0) breakdownText.push(`  • ${attendeeBreakdown.ny} from New York`);
-    if (attendeeBreakdown.sf > 0) breakdownText.push(`  • ${attendeeBreakdown.sf} from San Francisco`);
-    if (attendeeBreakdown.denver > 0) breakdownText.push(`  • ${attendeeBreakdown.denver} from Denver`);
-    if (attendeeBreakdown.remote > 0) breakdownText.push(`  • ${attendeeBreakdown.remote} remote`);
+    if (attendeeBreakdown['new-york'] > 0) breakdownText.push(`  • ${attendeeBreakdown['new-york']} from New York`);
+    if (attendeeBreakdown['san-francisco'] > 0) breakdownText.push(`  • ${attendeeBreakdown['san-francisco']} from San Francisco`);
+    if (attendeeBreakdown['denver'] > 0) breakdownText.push(`  • ${attendeeBreakdown['denver']} from Denver`);
+    if (attendeeBreakdown['remote'] > 0) breakdownText.push(`  • ${attendeeBreakdown['remote']} remote`);
     
     const exportData = `
 OFF-SITE COST ESTIMATE
 =====================
 
 Location: ${location.name}
-Total Attendees: ${totalAttendees} people
+Total Attendees: ${employees.length} people
 Duration: ${days} ${days === 1 ? 'day' : 'days'}
 Date Generated: ${new Date().toLocaleDateString()}
 
@@ -418,15 +752,19 @@ ${breakdownText.join('\n')}
 Local attendees (no travel costs): ${localAttendees}
 Traveling attendees: ${travelingAttendees}
 
+SELECTED EMPLOYEES:
+------------------
+${employees.map(emp => `${emp.name} (${emp.location})`).join('\n')}
+
 COST BREAKDOWN:
 --------------
 Flights (${travelingAttendees} traveling people): $${flightCosts.toLocaleString()}
 Hotel (${travelingAttendees} people × ${days} nights): $${hotelCosts.toLocaleString()}
-Meals (${totalAttendees} people × ${days} days): $${mealCosts.toLocaleString()}
+Meals (${employees.length} people × ${days} days): $${mealCosts.toLocaleString()}
 Uber (${travelingAttendees} traveling people): $${uberCosts.toLocaleString()}
 
 TOTAL COST: $${totalCost.toLocaleString()}
-Cost per person: $${Math.round(totalCost / totalAttendees).toLocaleString()}
+Cost per person: $${Math.round(totalCost / employees.length).toLocaleString()}
 
 ASSUMPTIONS:
 -----------
@@ -451,86 +789,38 @@ Generated by Off-Site Cost Calculator
     window.URL.revokeObjectURL(url);
 }
 
-// Attendee breakdown functions
-function updateAttendeeBreakdownDisplay() {
-    const totalAttendees = parseInt(document.getElementById('attendees').value) || 0;
-    document.getElementById('total-attendees-display').textContent = totalAttendees;
-    document.getElementById('breakdown-target').textContent = totalAttendees;
-    updateBreakdownTotal();
-}
-
-function updateBreakdownTotal() {
-    const nyCount = parseInt(document.getElementById('attendees-ny').value) || 0;
-    const sfCount = parseInt(document.getElementById('attendees-sf').value) || 0;
-    const denverCount = parseInt(document.getElementById('attendees-denver').value) || 0;
-    const remoteCount = parseInt(document.getElementById('attendees-remote').value) || 0;
-    
-    const total = nyCount + sfCount + denverCount + remoteCount;
-    document.getElementById('breakdown-total').textContent = total;
-    
-    // Update styling based on whether total matches target
-    const summaryElement = document.querySelector('.attendee-summary');
-    const targetTotal = parseInt(document.getElementById('breakdown-target').textContent) || 0;
-    
-    if (total === targetTotal && total > 0) {
-        summaryElement.style.background = '#f0fdf4';
-        summaryElement.style.borderColor = '#bbf7d0';
-        summaryElement.style.color = '#166534';
-    } else if (total > targetTotal) {
-        summaryElement.style.background = '#fef2f2';
-        summaryElement.style.borderColor = '#fecaca';
-        summaryElement.style.color = '#dc2626';
-    } else {
-        summaryElement.style.background = '#f0f9ff';
-        summaryElement.style.borderColor = '#bfdbfe';
-        summaryElement.style.color = '#1e40af';
-    }
-}
-
-function validateAttendeeBreakdown() {
-    const targetTotal = parseInt(document.getElementById('breakdown-target').textContent) || 0;
-    const currentTotal = parseInt(document.getElementById('breakdown-total').textContent) || 0;
-    
-    if (currentTotal !== targetTotal) {
-        showError(`Please distribute all ${targetTotal} attendees. Current total: ${currentTotal}`);
-        return false;
-    }
-    
-    if (currentTotal === 0) {
-        showError('Please specify where your attendees are coming from.');
-        return false;
-    }
-    
-    return true;
-}
-
 function switchToLocation(newLocation) {
     // Update the current form data
     currentFormData.location = newLocation;
     
     // Recalculate with the new location
-    const totalAttendees = parseInt(currentFormData.attendees);
     const days = parseInt(currentFormData.days);
+    const employees = selectedEmployees;
     
     const attendeeBreakdown = {
-        ny: parseInt(currentFormData['attendees-ny']) || 0,
-        sf: parseInt(currentFormData['attendees-sf']) || 0,
-        denver: parseInt(currentFormData['attendees-denver']) || 0,
-        remote: parseInt(currentFormData['attendees-remote']) || 0
+        'san-francisco': 0,
+        'new-york': 0,
+        'denver': 0,
+        'remote': 0
     };
     
+    employees.forEach(emp => {
+        attendeeBreakdown[emp.category]++;
+    });
+    
     // Calculate costs for all locations again
-    const allLocationCosts = calculateAllLocationCosts(attendeeBreakdown, totalAttendees, days);
+    const allLocationCosts = calculateAllLocationCosts(attendeeBreakdown, employees.length, days);
     const newLocationCost = allLocationCosts[newLocation];
     const cheapestLocation = findCheapestLocation(allLocationCosts);
     
     // Display results with the new location
     displayResults({
         location: COST_DATA[newLocation],
-        attendees: totalAttendees,
+        attendees: employees.length,
         localAttendees: newLocationCost.localAttendees,
         travelingAttendees: newLocationCost.travelingAttendees,
         attendeeBreakdown,
+        selectedEmployees: employees,
         days,
         costs: newLocationCost.costs,
         allLocationCosts,
@@ -551,6 +841,7 @@ function dismissCheaperOption() {
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
     showStep(1);
+    initializeFileUpload();
     
     // Add event listeners for location cards
     document.querySelectorAll('input[name="location"]').forEach(radio => {
@@ -565,21 +856,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add input validation
-    document.getElementById('attendees').addEventListener('input', function() {
-        if (this.value < 1) this.value = 1;
-        if (this.value > 100) this.value = 100;
-    });
-    
     document.getElementById('days').addEventListener('input', function() {
         if (this.value < 1) this.value = 1;
         if (this.value > 14) this.value = 14;
-    });
-    
-    // Add event listeners for attendee breakdown inputs
-    ['attendees-ny', 'attendees-sf', 'attendees-denver', 'attendees-remote'].forEach(id => {
-        document.getElementById(id).addEventListener('input', function() {
-            if (this.value < 0) this.value = 0;
-            updateBreakdownTotal();
-        });
     });
 });

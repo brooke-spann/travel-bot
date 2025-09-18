@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Off-Site Cost Calculator</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -15,8 +16,29 @@
 
         <main>
             <form id="offsite-form" class="calculator-form">
-                <!-- Step 1: Location Selection -->
+                <!-- Step 1: Upload Headcount Data -->
                 <div class="form-section active" id="step-1">
+                    <h2>📊 Upload Your Headcount Data</h2>
+                    <p class="step-description">Upload a CSV or Excel file with employee data. Make sure employee names are in column A and locations are in column L.</p>
+                    
+                    <div class="file-upload-area" id="file-upload-area">
+                        <div class="upload-icon">📄</div>
+                        <p class="upload-text">Drag & drop your file here, or click to browse</p>
+                        <p class="upload-subtext">Supports CSV and Excel files (.csv, .xlsx, .xls)</p>
+                        <input type="file" id="file-input" accept=".csv,.xlsx,.xls" hidden>
+                    </div>
+                    
+                    <div id="file-preview" class="file-preview" style="display: none;">
+                        <h3>📋 File Preview</h3>
+                        <div id="preview-content"></div>
+                        <p class="preview-info">Found <span id="employee-count">0</span> employees</p>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" id="continue-btn" onclick="nextStep(2)" style="display: none;">Continue</button>
+                </div>
+
+                <!-- Step 2: Location Selection -->
+                <div class="form-section" id="step-2">
                     <h2>📍 Where would you like to hold the off-site?</h2>
                     <div class="location-grid">
                         <label class="location-card">
@@ -44,48 +66,54 @@
                             </div>
                         </label>
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="nextStep(2)">Continue</button>
-                </div>
-
-                <!-- Step 2: Number of People -->
-                <div class="form-section" id="step-2">
-                    <h2>👥 How many people will be attending?</h2>
-                    <div class="input-group">
-                        <label for="attendees">Number of attendees:</label>
-                        <input type="number" id="attendees" name="attendees" min="1" max="100" required>
-                    </div>
                     <div class="step-navigation">
                         <button type="button" class="btn btn-secondary" onclick="previousStep(1)">Back</button>
                         <button type="button" class="btn btn-primary" onclick="nextStep(3)">Continue</button>
                     </div>
                 </div>
 
-                <!-- Step 3: Attendee Breakdown -->
+                <!-- Step 3: Employee Selection -->
                 <div class="form-section" id="step-3">
-                    <h2>📍 Where are your attendees coming from?</h2>
-                    <p class="step-description">Break down your <span id="total-attendees-display">0</span> attendees by location. Local attendees won't need flights, hotels, or transportation.</p>
+                    <h2>👥 Select Employees for the Off-site</h2>
+                    <p class="step-description">Choose which employees will attend the off-site. You can search and select multiple employees.</p>
                     
-                    <div class="attendee-breakdown">
-                        <div class="breakdown-item">
-                            <label for="attendees-ny">🗽 New York:</label>
-                            <input type="number" id="attendees-ny" name="attendees-ny" min="0" value="0">
+                    <div class="employee-selection">
+                        <div class="search-container">
+                            <input type="text" id="employee-search" placeholder="Search employees..." class="search-input">
+                            <div class="search-actions">
+                                <button type="button" class="btn btn-secondary btn-small" onclick="selectAll()">Select All</button>
+                                <button type="button" class="btn btn-secondary btn-small" onclick="clearAll()">Clear All</button>
+                            </div>
                         </div>
-                        <div class="breakdown-item">
-                            <label for="attendees-sf">🌉 San Francisco:</label>
-                            <input type="number" id="attendees-sf" name="attendees-sf" min="0" value="0">
+                        
+                        <div id="employee-list" class="employee-list">
+                            <!-- Employee checkboxes will be populated here -->
                         </div>
-                        <div class="breakdown-item">
-                            <label for="attendees-denver">🏔️ Denver:</label>
-                            <input type="number" id="attendees-denver" name="attendees-denver" min="0" value="0">
+                        
+                        <div class="selection-summary">
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="selected-count">0</span>
+                                    <span class="stat-label">Selected</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="sf-count">0</span>
+                                    <span class="stat-label">🌉 SF</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="ny-count">0</span>
+                                    <span class="stat-label">🗽 NY</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="denver-count">0</span>
+                                    <span class="stat-label">🏔️ Denver</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="remote-count">0</span>
+                                    <span class="stat-label">💻 Remote</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="breakdown-item">
-                            <label for="attendees-remote">💻 Remote:</label>
-                            <input type="number" id="attendees-remote" name="attendees-remote" min="0" value="0">
-                        </div>
-                    </div>
-                    
-                    <div class="attendee-summary">
-                        <span>Total: <span id="breakdown-total">0</span> / <span id="breakdown-target">0</span> attendees</span>
                     </div>
                     
                     <div class="step-navigation">
