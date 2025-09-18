@@ -9,7 +9,7 @@ A professional web application to help business partners calculate the costs of 
   - Number of attendees
   - Duration of the off-site
   - Location-specific pricing
-- **Comprehensive Cost Breakdown**: Includes flights, hotels, meals, activities, transportation, and Uber rides
+- **Comprehensive Cost Breakdown**: Includes flights, hotels, meals, and Uber rides
 - **Professional UI**: Modern, responsive design that works on all devices
 - **Export Functionality**: Download cost estimates as text files
 - **Real-time Validation**: Input validation and error handling
@@ -22,32 +22,24 @@ The application uses realistic cost assumptions for each location:
 - Flights: $450 per person (round-trip)
 - Hotel: $250 per person per night
 - Meals: $75 per person per day
-- Activities: $50 per person per day
-- Transportation: $40 per person per day
 - Uber: $100 per person (2 trips at $50 each)
 
 ### San Francisco 🌉
 - Flights: $520 per person (round-trip)
 - Hotel: $350 per person per night
-- Meals: $95 per person per day
-- Activities: $75 per person per day
-- Transportation: $35 per person per day
+- Meals: $75 per person per day
 - Uber: $100 per person (2 trips at $50 each)
 
 ### Denver 🏔️
 - Flights: $380 per person (round-trip)
 - Hotel: $300 per person per night
-- Meals: $70 per person per day
-- Activities: $45 per person per day
-- Transportation: $30 per person per day
+- Meals: $75 per person per day
 - Uber: $100 per person (2 trips at $50 each)
 
 ### New York 🗽
 - Flights: $480 per person (round-trip)
 - Hotel: $400 per person per night
-- Meals: $85 per person per day
-- Activities: $65 per person per day
-- Transportation: $45 per person per day
+- Meals: $75 per person per day
 - Uber: $100 per person (2 trips at $50 each)
 
 ## 🚀 Deployment to GitHub Pages
@@ -114,9 +106,8 @@ const COST_DATA = {
         icon: '🏙️',
         flight: 500,        // Flight cost per person
         hotel: 200,         // Hotel cost per night per person
-        meals: 80,          // Meals per day per person
-        activities: 60,     // Activities per day per person
-        transportation: 35  // Transportation per day per person
+        meals: 75,          // Meals per day per person (standardized)
+        uber: 100          // Uber cost per person (2 trips at $50 each)
     }
 };
 ```
