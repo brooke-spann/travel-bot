@@ -68,15 +68,49 @@
                     </div>
                 </div>
 
-                <!-- Step 3: Duration -->
+                <!-- Step 3: Attendee Breakdown -->
                 <div class="form-section" id="step-3">
+                    <h2>📍 Where are your attendees coming from?</h2>
+                    <p class="step-description">Break down your <span id="total-attendees-display">0</span> attendees by location. Local attendees won't need flights, hotels, or transportation.</p>
+                    
+                    <div class="attendee-breakdown">
+                        <div class="breakdown-item">
+                            <label for="attendees-ny">🗽 New York:</label>
+                            <input type="number" id="attendees-ny" name="attendees-ny" min="0" value="0">
+                        </div>
+                        <div class="breakdown-item">
+                            <label for="attendees-sf">🌉 San Francisco:</label>
+                            <input type="number" id="attendees-sf" name="attendees-sf" min="0" value="0">
+                        </div>
+                        <div class="breakdown-item">
+                            <label for="attendees-denver">🏔️ Denver:</label>
+                            <input type="number" id="attendees-denver" name="attendees-denver" min="0" value="0">
+                        </div>
+                        <div class="breakdown-item">
+                            <label for="attendees-remote">💻 Remote:</label>
+                            <input type="number" id="attendees-remote" name="attendees-remote" min="0" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="attendee-summary">
+                        <span>Total: <span id="breakdown-total">0</span> / <span id="breakdown-target">0</span> attendees</span>
+                    </div>
+                    
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep(2)">Back</button>
+                        <button type="button" class="btn btn-primary" onclick="nextStep(4)">Continue</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Duration -->
+                <div class="form-section" id="step-4">
                     <h2>📅 How many days will the off-site last?</h2>
                     <div class="input-group">
                         <label for="days">Number of days:</label>
                         <input type="number" id="days" name="days" min="1" max="14" required>
                     </div>
                     <div class="step-navigation">
-                        <button type="button" class="btn btn-secondary" onclick="previousStep(2)">Back</button>
+                        <button type="button" class="btn btn-secondary" onclick="previousStep(3)">Back</button>
                         <button type="button" class="btn btn-primary" onclick="calculateCosts()">Calculate Costs</button>
                     </div>
                 </div>

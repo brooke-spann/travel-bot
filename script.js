@@ -39,6 +39,10 @@ let currentFormData = {};
 // Navigation functions
 function nextStep(stepNumber) {
     if (validateCurrentStep()) {
+        // Special handling for step 3 (attendee breakdown)
+        if (stepNumber === 3) {
+            updateAttendeeBreakdownDisplay();
+        }
         showStep(stepNumber);
         saveCurrentStepData();
     }
@@ -60,6 +64,13 @@ function showStep(stepNumber) {
 
 function validateCurrentStep() {
     const activeStep = document.querySelector('.form-section.active');
+    const stepId = activeStep.id;
+    
+    // Special validation for attendee breakdown step
+    if (stepId === 'step-3') {
+        return validateAttendeeBreakdown();
+    }
+    
     const requiredInputs = activeStep.querySelectorAll('input[required]');
     
     for (let input of requiredInputs) {
@@ -123,29 +134,63 @@ function calculateCosts() {
     saveCurrentStepData();
     
     const location = currentFormData.location;
-    const attendees = parseInt(currentFormData.attendees);
+    const totalAttendees = parseInt(currentFormData.attendees);
     const days = parseInt(currentFormData.days);
     
-    if (!location || !attendees || !days) {
+    // Get attendee breakdown
+    const attendeeBreakdown = {
+        ny: parseInt(currentFormData['attendees-ny']) || 0,
+        sf: parseInt(currentFormData['attendees-sf']) || 0,
+        denver: parseInt(currentFormData['attendees-denver']) || 0,
+        remote: parseInt(currentFormData['attendees-remote']) || 0
+    };
+    
+    if (!location || !totalAttendees || !days) {
         showError('Please complete all steps before calculating costs.');
         return;
     }
     
     const costs = COST_DATA[location];
     
-    // Calculate costs
-    const flightCosts = costs.flight * attendees;
-    const hotelCosts = costs.hotel * attendees * days;
-    const mealCosts = costs.meals * attendees * days;
-    const uberCosts = costs.uber * attendees; // Fixed cost per person for 2 trips
+    // Calculate local vs traveling attendees
+    let localAttendees = 0;
+    let travelingAttendees = 0;
+    
+    switch(location) {
+        case 'new-york':
+            localAttendees = attendeeBreakdown.ny;
+            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            break;
+        case 'san-francisco':
+            localAttendees = attendeeBreakdown.sf;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            break;
+        case 'denver':
+            localAttendees = attendeeBreakdown.denver;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.remote;
+            break;
+        case 'arizona':
+            localAttendees = 0; // No one is local to Arizona in our breakdown
+            travelingAttendees = totalAttendees;
+            break;
+    }
+    
+    // Calculate costs - only traveling attendees pay for flights, hotels, and uber
+    const flightCosts = costs.flight * travelingAttendees;
+    const hotelCosts = costs.hotel * travelingAttendees * days;
+    const mealCosts = costs.meals * totalAttendees * days; // Everyone eats
+    const uberCosts = costs.uber * travelingAttendees; // Only traveling attendees need transportation
     
     const totalCost = flightCosts + hotelCosts + mealCosts + uberCosts;
-    const costPerPerson = totalCost / attendees;
+    const costPerPerson = totalCost / totalAttendees;
     
     // Display results
     displayResults({
         location: costs,
-        attendees,
+        attendees: totalAttendees,
+        localAttendees,
+        travelingAttendees,
+        attendeeBreakdown,
         days,
         costs: {
             flights: flightCosts,
@@ -166,13 +211,24 @@ function calculateCosts() {
 }
 
 function displayResults(data) {
-    const { location, attendees, days, costs } = data;
+    const { location, attendees, localAttendees, travelingAttendees, attendeeBreakdown, days, costs } = data;
+    
+    // Create attendee breakdown display
+    const breakdownDisplay = [];
+    if (attendeeBreakdown.ny > 0) breakdownDisplay.push(`🗽 ${attendeeBreakdown.ny} from New York`);
+    if (attendeeBreakdown.sf > 0) breakdownDisplay.push(`🌉 ${attendeeBreakdown.sf} from San Francisco`);
+    if (attendeeBreakdown.denver > 0) breakdownDisplay.push(`🏔️ ${attendeeBreakdown.denver} from Denver`);
+    if (attendeeBreakdown.remote > 0) breakdownDisplay.push(`💻 ${attendeeBreakdown.remote} remote`);
     
     // Update summary
     const summaryHTML = `
         <div class="location-info">
             <h3>${location.icon} ${location.name} Off-Site</h3>
             <p><strong>${attendees}</strong> attendees for <strong>${days}</strong> ${days === 1 ? 'day' : 'days'}</p>
+            <div class="attendee-breakdown-summary">
+                ${breakdownDisplay.join(' • ')}
+            </div>
+            ${localAttendees > 0 ? `<p class="local-savings">💡 ${localAttendees} local attendee${localAttendees === 1 ? '' : 's'} save on flights, hotels & transportation!</p>` : ''}
         </div>
         <div class="total-cost">$${costs.total.toLocaleString()}</div>
         <div class="cost-per-person">$${Math.round(costs.perPerson).toLocaleString()} per person</div>
@@ -185,11 +241,11 @@ function displayResults(data) {
         <h3>💼 Detailed Cost Breakdown</h3>
         <div class="cost-breakdown">
             <div class="cost-item">
-                <span class="cost-label">✈️ Flights (${attendees} people)</span>
+                <span class="cost-label">✈️ Flights (${travelingAttendees} traveling people)</span>
                 <span class="cost-value">$${costs.flights.toLocaleString()}</span>
             </div>
             <div class="cost-item">
-                <span class="cost-label">🏨 Hotel (${attendees} people × ${days} ${days === 1 ? 'night' : 'nights'})</span>
+                <span class="cost-label">🏨 Hotel (${travelingAttendees} traveling people × ${days} ${days === 1 ? 'night' : 'nights'})</span>
                 <span class="cost-value">$${costs.hotel.toLocaleString()}</span>
             </div>
             <div class="cost-item">
@@ -197,7 +253,7 @@ function displayResults(data) {
                 <span class="cost-value">$${costs.meals.toLocaleString()}</span>
             </div>
             <div class="cost-item">
-                <span class="cost-label">🚕 Uber (${attendees} people × 2 trips)</span>
+                <span class="cost-label">🚕 Uber (${travelingAttendees} traveling people × 2 trips)</span>
                 <span class="cost-value">$${costs.uber.toLocaleString()}</span>
             </div>
             <div class="cost-item">
@@ -229,35 +285,80 @@ function startOver() {
 
 function exportResults() {
     const location = COST_DATA[currentFormData.location];
-    const attendees = parseInt(currentFormData.attendees);
+    const totalAttendees = parseInt(currentFormData.attendees);
     const days = parseInt(currentFormData.days);
+    
+    // Get attendee breakdown
+    const attendeeBreakdown = {
+        ny: parseInt(currentFormData['attendees-ny']) || 0,
+        sf: parseInt(currentFormData['attendees-sf']) || 0,
+        denver: parseInt(currentFormData['attendees-denver']) || 0,
+        remote: parseInt(currentFormData['attendees-remote']) || 0
+    };
+    
+    // Calculate local vs traveling attendees
+    let localAttendees = 0;
+    let travelingAttendees = 0;
+    
+    switch(currentFormData.location) {
+        case 'new-york':
+            localAttendees = attendeeBreakdown.ny;
+            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            break;
+        case 'san-francisco':
+            localAttendees = attendeeBreakdown.sf;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            break;
+        case 'denver':
+            localAttendees = attendeeBreakdown.denver;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.remote;
+            break;
+        case 'arizona':
+            localAttendees = 0;
+            travelingAttendees = totalAttendees;
+            break;
+    }
     
     // Calculate costs again for export
     const costs = COST_DATA[currentFormData.location];
-    const flightCosts = costs.flight * attendees;
-    const hotelCosts = costs.hotel * attendees * days;
-    const mealCosts = costs.meals * attendees * days;
-    const uberCosts = costs.uber * attendees;
+    const flightCosts = costs.flight * travelingAttendees;
+    const hotelCosts = costs.hotel * travelingAttendees * days;
+    const mealCosts = costs.meals * totalAttendees * days;
+    const uberCosts = costs.uber * travelingAttendees;
     const totalCost = flightCosts + hotelCosts + mealCosts + uberCosts;
+    
+    // Create attendee breakdown text
+    const breakdownText = [];
+    if (attendeeBreakdown.ny > 0) breakdownText.push(`  • ${attendeeBreakdown.ny} from New York`);
+    if (attendeeBreakdown.sf > 0) breakdownText.push(`  • ${attendeeBreakdown.sf} from San Francisco`);
+    if (attendeeBreakdown.denver > 0) breakdownText.push(`  • ${attendeeBreakdown.denver} from Denver`);
+    if (attendeeBreakdown.remote > 0) breakdownText.push(`  • ${attendeeBreakdown.remote} remote`);
     
     const exportData = `
 OFF-SITE COST ESTIMATE
 =====================
 
 Location: ${location.name}
-Attendees: ${attendees} people
+Total Attendees: ${totalAttendees} people
 Duration: ${days} ${days === 1 ? 'day' : 'days'}
 Date Generated: ${new Date().toLocaleDateString()}
 
+ATTENDEE BREAKDOWN:
+------------------
+${breakdownText.join('\n')}
+
+Local attendees (no travel costs): ${localAttendees}
+Traveling attendees: ${travelingAttendees}
+
 COST BREAKDOWN:
 --------------
-Flights: $${flightCosts.toLocaleString()}
-Hotel: $${hotelCosts.toLocaleString()}
-Meals: $${mealCosts.toLocaleString()}
-Uber: $${uberCosts.toLocaleString()}
+Flights (${travelingAttendees} traveling people): $${flightCosts.toLocaleString()}
+Hotel (${travelingAttendees} people × ${days} nights): $${hotelCosts.toLocaleString()}
+Meals (${totalAttendees} people × ${days} days): $${mealCosts.toLocaleString()}
+Uber (${travelingAttendees} traveling people): $${uberCosts.toLocaleString()}
 
 TOTAL COST: $${totalCost.toLocaleString()}
-Cost per person: $${Math.round(totalCost / attendees).toLocaleString()}
+Cost per person: $${Math.round(totalCost / totalAttendees).toLocaleString()}
 
 ASSUMPTIONS:
 -----------
@@ -265,6 +366,7 @@ ASSUMPTIONS:
 • Hotel: $${costs.hotel} per person per night
 • Meals: $${costs.meals} per person per day
 • Uber: $${costs.uber} per person (2 trips at $50 each)
+• Local attendees do not incur flight, hotel, or transportation costs
 
 Generated by Off-Site Cost Calculator
     `.trim();
@@ -279,6 +381,59 @@ Generated by Off-Site Cost Calculator
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+}
+
+// Attendee breakdown functions
+function updateAttendeeBreakdownDisplay() {
+    const totalAttendees = parseInt(document.getElementById('attendees').value) || 0;
+    document.getElementById('total-attendees-display').textContent = totalAttendees;
+    document.getElementById('breakdown-target').textContent = totalAttendees;
+    updateBreakdownTotal();
+}
+
+function updateBreakdownTotal() {
+    const nyCount = parseInt(document.getElementById('attendees-ny').value) || 0;
+    const sfCount = parseInt(document.getElementById('attendees-sf').value) || 0;
+    const denverCount = parseInt(document.getElementById('attendees-denver').value) || 0;
+    const remoteCount = parseInt(document.getElementById('attendees-remote').value) || 0;
+    
+    const total = nyCount + sfCount + denverCount + remoteCount;
+    document.getElementById('breakdown-total').textContent = total;
+    
+    // Update styling based on whether total matches target
+    const summaryElement = document.querySelector('.attendee-summary');
+    const targetTotal = parseInt(document.getElementById('breakdown-target').textContent) || 0;
+    
+    if (total === targetTotal && total > 0) {
+        summaryElement.style.background = '#f0fdf4';
+        summaryElement.style.borderColor = '#bbf7d0';
+        summaryElement.style.color = '#166534';
+    } else if (total > targetTotal) {
+        summaryElement.style.background = '#fef2f2';
+        summaryElement.style.borderColor = '#fecaca';
+        summaryElement.style.color = '#dc2626';
+    } else {
+        summaryElement.style.background = '#f0f9ff';
+        summaryElement.style.borderColor = '#bfdbfe';
+        summaryElement.style.color = '#1e40af';
+    }
+}
+
+function validateAttendeeBreakdown() {
+    const targetTotal = parseInt(document.getElementById('breakdown-target').textContent) || 0;
+    const currentTotal = parseInt(document.getElementById('breakdown-total').textContent) || 0;
+    
+    if (currentTotal !== targetTotal) {
+        showError(`Please distribute all ${targetTotal} attendees. Current total: ${currentTotal}`);
+        return false;
+    }
+    
+    if (currentTotal === 0) {
+        showError('Please specify where your attendees are coming from.');
+        return false;
+    }
+    
+    return true;
 }
 
 // Initialize the app
@@ -306,5 +461,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('days').addEventListener('input', function() {
         if (this.value < 1) this.value = 1;
         if (this.value > 14) this.value = 14;
+    });
+    
+    // Add event listeners for attendee breakdown inputs
+    ['attendees-ny', 'attendees-sf', 'attendees-denver', 'attendees-remote'].forEach(id => {
+        document.getElementById(id).addEventListener('input', function() {
+            if (this.value < 0) this.value = 0;
+            updateBreakdownTotal();
+        });
     });
 });
