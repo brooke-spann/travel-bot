@@ -4,37 +4,41 @@ const COST_DATA = {
         name: 'Arizona',
         icon: '🌵',
         flight: 450,        // Average flight cost per person
-        hotel: 180,         // Hotel cost per night per person (assuming double occupancy)
+        hotel: 250,         // Hotel cost per night per person
         meals: 75,          // Meals per day per person
         activities: 50,     // Activities per day per person
-        transportation: 40  // Local transportation per day per person
+        transportation: 40, // Local transportation per day per person
+        uber: 100          // 2 Uber trips at $50 per person ($100 total per person)
     },
     'san-francisco': {
         name: 'San Francisco',
         icon: '🌉',
         flight: 520,
-        hotel: 280,
+        hotel: 350,
         meals: 95,
         activities: 75,
-        transportation: 35
+        transportation: 35,
+        uber: 100
     },
     'denver': {
         name: 'Denver',
         icon: '🏔️',
         flight: 380,
-        hotel: 160,
+        hotel: 300,
         meals: 70,
         activities: 45,
-        transportation: 30
+        transportation: 30,
+        uber: 100
     },
     'new-york': {
         name: 'New York',
         icon: '🗽',
         flight: 480,
-        hotel: 320,
+        hotel: 400,
         meals: 85,
         activities: 65,
-        transportation: 45
+        transportation: 45,
+        uber: 100
     }
 };
 
@@ -143,8 +147,9 @@ function calculateCosts() {
     const mealCosts = costs.meals * attendees * days;
     const activityCosts = costs.activities * attendees * days;
     const transportationCosts = costs.transportation * attendees * days;
+    const uberCosts = costs.uber * attendees; // Fixed cost per person for 2 trips
     
-    const totalCost = flightCosts + hotelCosts + mealCosts + activityCosts + transportationCosts;
+    const totalCost = flightCosts + hotelCosts + mealCosts + activityCosts + transportationCosts + uberCosts;
     const costPerPerson = totalCost / attendees;
     
     // Display results
@@ -158,6 +163,7 @@ function calculateCosts() {
             meals: mealCosts,
             activities: activityCosts,
             transportation: transportationCosts,
+            uber: uberCosts,
             total: totalCost,
             perPerson: costPerPerson
         }
@@ -211,6 +217,10 @@ function displayResults(data) {
                 <span class="cost-value">$${costs.transportation.toLocaleString()}</span>
             </div>
             <div class="cost-item">
+                <span class="cost-label">🚕 Uber (${attendees} people × 2 trips)</span>
+                <span class="cost-value">$${costs.uber.toLocaleString()}</span>
+            </div>
+            <div class="cost-item">
                 <span class="cost-label">💰 Total Cost</span>
                 <span class="cost-value">$${costs.total.toLocaleString()}</span>
             </div>
@@ -220,10 +230,11 @@ function displayResults(data) {
             <h4 style="color: #0c4a6e; margin-bottom: 10px;">📊 Cost Assumptions:</h4>
             <ul style="color: #475569; line-height: 1.6;">
                 <li><strong>Flights:</strong> $${location.flight} per person (round-trip)</li>
-                <li><strong>Hotel:</strong> $${location.hotel} per person per night (double occupancy)</li>
+                <li><strong>Hotel:</strong> $${location.hotel} per person per night</li>
                 <li><strong>Meals:</strong> $${location.meals} per person per day</li>
                 <li><strong>Activities:</strong> $${location.activities} per person per day</li>
                 <li><strong>Transportation:</strong> $${location.transportation} per person per day</li>
+                <li><strong>Uber:</strong> $${location.uber} per person (2 trips at $50 each)</li>
             </ul>
         </div>
     `;
@@ -250,7 +261,8 @@ function exportResults() {
     const mealCosts = costs.meals * attendees * days;
     const activityCosts = costs.activities * attendees * days;
     const transportationCosts = costs.transportation * attendees * days;
-    const totalCost = flightCosts + hotelCosts + mealCosts + activityCosts + transportationCosts;
+    const uberCosts = costs.uber * attendees;
+    const totalCost = flightCosts + hotelCosts + mealCosts + activityCosts + transportationCosts + uberCosts;
     
     const exportData = `
 OFF-SITE COST ESTIMATE
@@ -268,6 +280,7 @@ Hotel: $${hotelCosts.toLocaleString()}
 Meals: $${mealCosts.toLocaleString()}
 Activities: $${activityCosts.toLocaleString()}
 Transportation: $${transportationCosts.toLocaleString()}
+Uber: $${uberCosts.toLocaleString()}
 
 TOTAL COST: $${totalCost.toLocaleString()}
 Cost per person: $${Math.round(totalCost / attendees).toLocaleString()}
@@ -275,10 +288,11 @@ Cost per person: $${Math.round(totalCost / attendees).toLocaleString()}
 ASSUMPTIONS:
 -----------
 • Flights: $${costs.flight} per person (round-trip)
-• Hotel: $${costs.hotel} per person per night (double occupancy)
+• Hotel: $${costs.hotel} per person per night
 • Meals: $${costs.meals} per person per day
 • Activities: $${costs.activities} per person per day
 • Transportation: $${costs.transportation} per person per day
+• Uber: $${costs.uber} per person (2 trips at $50 each)
 
 Generated by Off-Site Cost Calculator
     `.trim();
