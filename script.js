@@ -142,6 +142,7 @@ function calculateCosts() {
         ny: parseInt(currentFormData['attendees-ny']) || 0,
         sf: parseInt(currentFormData['attendees-sf']) || 0,
         denver: parseInt(currentFormData['attendees-denver']) || 0,
+        arizona: parseInt(currentFormData['attendees-arizona']) || 0,
         remote: parseInt(currentFormData['attendees-remote']) || 0
     };
     
@@ -159,19 +160,19 @@ function calculateCosts() {
     switch(location) {
         case 'new-york':
             localAttendees = attendeeBreakdown.ny;
-            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
             break;
         case 'san-francisco':
             localAttendees = attendeeBreakdown.sf;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
             break;
         case 'denver':
             localAttendees = attendeeBreakdown.denver;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.remote;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.arizona + attendeeBreakdown.remote;
             break;
         case 'arizona':
-            localAttendees = 0; // No one is local to Arizona in our breakdown
-            travelingAttendees = totalAttendees;
+            localAttendees = attendeeBreakdown.arizona;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
             break;
     }
     
@@ -218,6 +219,7 @@ function displayResults(data) {
     if (attendeeBreakdown.ny > 0) breakdownDisplay.push(`🗽 ${attendeeBreakdown.ny} from New York`);
     if (attendeeBreakdown.sf > 0) breakdownDisplay.push(`🌉 ${attendeeBreakdown.sf} from San Francisco`);
     if (attendeeBreakdown.denver > 0) breakdownDisplay.push(`🏔️ ${attendeeBreakdown.denver} from Denver`);
+    if (attendeeBreakdown.arizona > 0) breakdownDisplay.push(`🌵 ${attendeeBreakdown.arizona} from Arizona`);
     if (attendeeBreakdown.remote > 0) breakdownDisplay.push(`💻 ${attendeeBreakdown.remote} remote`);
     
     // Update summary
@@ -293,6 +295,7 @@ function exportResults() {
         ny: parseInt(currentFormData['attendees-ny']) || 0,
         sf: parseInt(currentFormData['attendees-sf']) || 0,
         denver: parseInt(currentFormData['attendees-denver']) || 0,
+        arizona: parseInt(currentFormData['attendees-arizona']) || 0,
         remote: parseInt(currentFormData['attendees-remote']) || 0
     };
     
@@ -303,19 +306,19 @@ function exportResults() {
     switch(currentFormData.location) {
         case 'new-york':
             localAttendees = attendeeBreakdown.ny;
-            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
             break;
         case 'san-francisco':
             localAttendees = attendeeBreakdown.sf;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
             break;
         case 'denver':
             localAttendees = attendeeBreakdown.denver;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.remote;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.arizona + attendeeBreakdown.remote;
             break;
         case 'arizona':
-            localAttendees = 0;
-            travelingAttendees = totalAttendees;
+            localAttendees = attendeeBreakdown.arizona;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
             break;
     }
     
@@ -332,6 +335,7 @@ function exportResults() {
     if (attendeeBreakdown.ny > 0) breakdownText.push(`  • ${attendeeBreakdown.ny} from New York`);
     if (attendeeBreakdown.sf > 0) breakdownText.push(`  • ${attendeeBreakdown.sf} from San Francisco`);
     if (attendeeBreakdown.denver > 0) breakdownText.push(`  • ${attendeeBreakdown.denver} from Denver`);
+    if (attendeeBreakdown.arizona > 0) breakdownText.push(`  • ${attendeeBreakdown.arizona} from Arizona`);
     if (attendeeBreakdown.remote > 0) breakdownText.push(`  • ${attendeeBreakdown.remote} remote`);
     
     const exportData = `
@@ -395,9 +399,10 @@ function updateBreakdownTotal() {
     const nyCount = parseInt(document.getElementById('attendees-ny').value) || 0;
     const sfCount = parseInt(document.getElementById('attendees-sf').value) || 0;
     const denverCount = parseInt(document.getElementById('attendees-denver').value) || 0;
+    const arizonaCount = parseInt(document.getElementById('attendees-arizona').value) || 0;
     const remoteCount = parseInt(document.getElementById('attendees-remote').value) || 0;
     
-    const total = nyCount + sfCount + denverCount + remoteCount;
+    const total = nyCount + sfCount + denverCount + arizonaCount + remoteCount;
     document.getElementById('breakdown-total').textContent = total;
     
     // Update styling based on whether total matches target
@@ -464,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add event listeners for attendee breakdown inputs
-    ['attendees-ny', 'attendees-sf', 'attendees-denver', 'attendees-remote'].forEach(id => {
+    ['attendees-ny', 'attendees-sf', 'attendees-denver', 'attendees-arizona', 'attendees-remote'].forEach(id => {
         document.getElementById(id).addEventListener('input', function() {
             if (this.value < 0) this.value = 0;
             updateBreakdownTotal();
