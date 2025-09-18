@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Off-Site Cost Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏢 Off-Site Cost Calculator</h1>
+            <p>Plan your team off-site with accurate cost estimates</p>
+        </header>
+
+        <main>
+            <form id="offsite-form" class="calculator-form">
+                <!-- Step 1: Location Selection -->
+                <div class="form-section active" id="step-1">
+                    <h2>📍 Where would you like to hold the off-site?</h2>
+                    <div class="location-grid">
+                        <label class="location-card">
+                            <input type="radio" name="location" value="arizona" required>
+                            <div class="card-content">
+                                <div class="location-icon">🌵</div>
+                                <h3>Arizona</h3>
+                                <p>Sunny desert retreat</p>
+                            </div>
+                        </label>
+                        <label class="location-card">
+                            <input type="radio" name="location" value="san-francisco" required>
+                            <div class="card-content">
+                                <div class="location-icon">🌉</div>
+                                <h3>San Francisco</h3>
+                                <p>Tech hub by the bay</p>
+                            </div>
+                        </label>
+                        <label class="location-card">
+                            <input type="radio" name="location" value="denver" required>
+                            <div class="card-content">
+                                <div class="location-icon">🏔️</div>
+                                <h3>Denver</h3>
+                                <p>Mile high city</p>
+                            </div>
+                        </label>
+                        <label class="location-card">
+                            <input type="radio" name="location" value="new-york" required>
+                            <div class="card-content">
+                                <div class="location-icon">🗽</div>
+                                <h3>New York</h3>
+                                <p>The city that never sleeps</p>
+                            </div>
+                        </label>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="nextStep(2)">Continue</button>
+                </div>
+
+                <!-- Step 2: Number of People -->
+                <div class="form-section" id="step-2">
+                    <h2>👥 How many people will be attending?</h2>
+                    <div class="input-group">
+                        <label for="attendees">Number of attendees:</label>
+                        <input type="number" id="attendees" name="attendees" min="1" max="100" required>
+                    </div>
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep(1)">Back</button>
+                        <button type="button" class="btn btn-primary" onclick="nextStep(3)">Continue</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Duration -->
+                <div class="form-section" id="step-3">
+                    <h2>📅 How many days will the off-site last?</h2>
+                    <div class="input-group">
+                        <label for="days">Number of days:</label>
+                        <input type="number" id="days" name="days" min="1" max="14" required>
+                    </div>
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep(2)">Back</button>
+                        <button type="button" class="btn btn-primary" onclick="calculateCosts()">Calculate Costs</button>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="form-section" id="results" style="display: none;">
+                    <h2>💰 Cost Breakdown</h2>
+                    <div id="cost-summary" class="cost-summary"></div>
+                    <div id="cost-details" class="cost-details"></div>
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-secondary" onclick="startOver()">Start Over</button>
+                        <button type="button" class="btn btn-success" onclick="exportResults()">Export Results</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
