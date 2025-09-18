@@ -1,13 +1,5 @@
 // Cost assumptions for each location
 const COST_DATA = {
-    'arizona': {
-        name: 'Arizona',
-        icon: '🌵',
-        flight: 450,        // Average flight cost per person
-        hotel: 250,         // Hotel cost per night per person
-        meals: 75,          // Meals per day per person
-        uber: 100          // 2 Uber trips at $50 per person ($100 total per person)
-    },
     'san-francisco': {
         name: 'San Francisco',
         icon: '🌉',
@@ -142,7 +134,6 @@ function calculateCosts() {
         ny: parseInt(currentFormData['attendees-ny']) || 0,
         sf: parseInt(currentFormData['attendees-sf']) || 0,
         denver: parseInt(currentFormData['attendees-denver']) || 0,
-        arizona: parseInt(currentFormData['attendees-arizona']) || 0,
         remote: parseInt(currentFormData['attendees-remote']) || 0
     };
     
@@ -192,19 +183,15 @@ function calculateAllLocationCosts(attendeeBreakdown, totalAttendees, days) {
         switch(locationKey) {
             case 'new-york':
                 localAttendees = attendeeBreakdown.ny;
-                travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
+                travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
                 break;
             case 'san-francisco':
                 localAttendees = attendeeBreakdown.sf;
-                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
+                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.remote;
                 break;
             case 'denver':
                 localAttendees = attendeeBreakdown.denver;
-                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.arizona + attendeeBreakdown.remote;
-                break;
-            case 'arizona':
-                localAttendees = attendeeBreakdown.arizona;
-                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
+                travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.remote;
                 break;
         }
         
@@ -257,7 +244,6 @@ function displayResults(data) {
     if (attendeeBreakdown.ny > 0) breakdownDisplay.push(`🗽 ${attendeeBreakdown.ny} from New York`);
     if (attendeeBreakdown.sf > 0) breakdownDisplay.push(`🌉 ${attendeeBreakdown.sf} from San Francisco`);
     if (attendeeBreakdown.denver > 0) breakdownDisplay.push(`🏔️ ${attendeeBreakdown.denver} from Denver`);
-    if (attendeeBreakdown.arizona > 0) breakdownDisplay.push(`🌵 ${attendeeBreakdown.arizona} from Arizona`);
     if (attendeeBreakdown.remote > 0) breakdownDisplay.push(`💻 ${attendeeBreakdown.remote} remote`);
     
     // Check if there's a cheaper location
@@ -379,7 +365,6 @@ function exportResults() {
         ny: parseInt(currentFormData['attendees-ny']) || 0,
         sf: parseInt(currentFormData['attendees-sf']) || 0,
         denver: parseInt(currentFormData['attendees-denver']) || 0,
-        arizona: parseInt(currentFormData['attendees-arizona']) || 0,
         remote: parseInt(currentFormData['attendees-remote']) || 0
     };
     
@@ -390,19 +375,15 @@ function exportResults() {
     switch(currentFormData.location) {
         case 'new-york':
             localAttendees = attendeeBreakdown.ny;
-            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
+            travelingAttendees = attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
             break;
         case 'san-francisco':
             localAttendees = attendeeBreakdown.sf;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.arizona + attendeeBreakdown.remote;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.denver + attendeeBreakdown.remote;
             break;
         case 'denver':
             localAttendees = attendeeBreakdown.denver;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.arizona + attendeeBreakdown.remote;
-            break;
-        case 'arizona':
-            localAttendees = attendeeBreakdown.arizona;
-            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.denver + attendeeBreakdown.remote;
+            travelingAttendees = attendeeBreakdown.ny + attendeeBreakdown.sf + attendeeBreakdown.remote;
             break;
     }
     
@@ -419,7 +400,6 @@ function exportResults() {
     if (attendeeBreakdown.ny > 0) breakdownText.push(`  • ${attendeeBreakdown.ny} from New York`);
     if (attendeeBreakdown.sf > 0) breakdownText.push(`  • ${attendeeBreakdown.sf} from San Francisco`);
     if (attendeeBreakdown.denver > 0) breakdownText.push(`  • ${attendeeBreakdown.denver} from Denver`);
-    if (attendeeBreakdown.arizona > 0) breakdownText.push(`  • ${attendeeBreakdown.arizona} from Arizona`);
     if (attendeeBreakdown.remote > 0) breakdownText.push(`  • ${attendeeBreakdown.remote} remote`);
     
     const exportData = `
@@ -483,10 +463,9 @@ function updateBreakdownTotal() {
     const nyCount = parseInt(document.getElementById('attendees-ny').value) || 0;
     const sfCount = parseInt(document.getElementById('attendees-sf').value) || 0;
     const denverCount = parseInt(document.getElementById('attendees-denver').value) || 0;
-    const arizonaCount = parseInt(document.getElementById('attendees-arizona').value) || 0;
     const remoteCount = parseInt(document.getElementById('attendees-remote').value) || 0;
     
-    const total = nyCount + sfCount + denverCount + arizonaCount + remoteCount;
+    const total = nyCount + sfCount + denverCount + remoteCount;
     document.getElementById('breakdown-total').textContent = total;
     
     // Update styling based on whether total matches target
@@ -537,7 +516,6 @@ function switchToLocation(newLocation) {
         ny: parseInt(currentFormData['attendees-ny']) || 0,
         sf: parseInt(currentFormData['attendees-sf']) || 0,
         denver: parseInt(currentFormData['attendees-denver']) || 0,
-        arizona: parseInt(currentFormData['attendees-arizona']) || 0,
         remote: parseInt(currentFormData['attendees-remote']) || 0
     };
     
@@ -598,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add event listeners for attendee breakdown inputs
-    ['attendees-ny', 'attendees-sf', 'attendees-denver', 'attendees-arizona', 'attendees-remote'].forEach(id => {
+    ['attendees-ny', 'attendees-sf', 'attendees-denver', 'attendees-remote'].forEach(id => {
         document.getElementById(id).addEventListener('input', function() {
             if (this.value < 0) this.value = 0;
             updateBreakdownTotal();
