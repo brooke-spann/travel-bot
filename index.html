@@ -89,6 +89,24 @@
                             </div>
                         </div>
                         
+                        <div class="filter-container">
+                            <div class="filter-group">
+                                <label for="department-filter">Filter by Department:</label>
+                                <select id="department-filter" class="filter-select">
+                                    <option value="">All Departments</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="domain-filter">Filter by Domain:</label>
+                                <select id="domain-filter" class="filter-select">
+                                    <option value="">All Domains</option>
+                                </select>
+                            </div>
+                            <div class="filter-actions">
+                                <button type="button" class="btn btn-secondary btn-small" onclick="clearFilters()">Clear Filters</button>
+                            </div>
+                        </div>
+                        
                         <div id="employee-list" class="employee-list">
                             <!-- Employee checkboxes will be populated here -->
                         </div>
