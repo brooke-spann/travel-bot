@@ -30,6 +30,7 @@ const COST_DATA = {
 let currentFormData = {};
 let employeeData = [];
 let selectedEmployees = [];
+let selectedEmployeeIndices = new Set(); // Track selected employee indices globally
 
 // File upload and parsing functions
 function initializeFileUpload() {
@@ -231,21 +232,29 @@ function populateEmployeeList() {
     const employeeList = document.getElementById('employee-list');
     const searchInput = document.getElementById('employee-search');
     
-    function renderEmployees(employees = employeeData) {
+    function renderEmployees(employeesToShow = employeeData) {
         employeeList.innerHTML = '';
         
-        employees.forEach((employee, index) => {
+        employeesToShow.forEach((employee) => {
+            // Find the original index in the full employeeData array
+            const originalIndex = employeeData.findIndex(emp => 
+                emp.name === employee.name && emp.location === employee.location
+            );
+            
             const item = document.createElement('div');
             item.className = 'employee-item';
             
             const locationIcon = getLocationIcon(employee.category);
             const locationClass = `location-${employee.category}`;
             
+            // Check if this employee was previously selected using global tracking
+            const isSelected = selectedEmployeeIndices.has(originalIndex);
+            
             item.innerHTML = `
-                <input type="checkbox" class="employee-checkbox" id="emp-${index}" 
-                       data-index="${index}" onchange="updateSelection()">
+                <input type="checkbox" class="employee-checkbox" id="emp-${originalIndex}" 
+                       data-index="${originalIndex}" ${isSelected ? 'checked' : ''}>
                 <div class="employee-info">
-                    <label for="emp-${index}" class="employee-name">${employee.name}</label>
+                    <label for="emp-${originalIndex}" class="employee-name">${employee.name}</label>
                     <div class="employee-location">
                         <span class="location-badge ${locationClass}">
                             ${locationIcon} ${employee.location}
@@ -255,6 +264,18 @@ function populateEmployeeList() {
             `;
             
             employeeList.appendChild(item);
+            
+            // Add event listener to the checkbox
+            const checkbox = item.querySelector('.employee-checkbox');
+            checkbox.addEventListener('change', function() {
+                const empIndex = parseInt(this.dataset.index);
+                if (this.checked) {
+                    selectedEmployeeIndices.add(empIndex);
+                } else {
+                    selectedEmployeeIndices.delete(empIndex);
+                }
+                updateSelection();
+            });
         });
     }
     
@@ -283,7 +304,6 @@ function getLocationIcon(category) {
 }
 
 function updateSelection() {
-    const checkboxes = document.querySelectorAll('.employee-checkbox');
     selectedEmployees = [];
     
     let counts = {
@@ -293,13 +313,10 @@ function updateSelection() {
         'remote': 0
     };
     
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            const index = parseInt(checkbox.dataset.index);
-            const employee = employeeData[index];
-            selectedEmployees.push(employee);
-            counts[employee.category]++;
-        }
+    selectedEmployeeIndices.forEach(index => {
+        const employee = employeeData[index];
+        selectedEmployees.push(employee);
+        counts[employee.category]++;
     });
     
     // Update summary stats
@@ -311,18 +328,29 @@ function updateSelection() {
 }
 
 function selectAll() {
+    selectedEmployeeIndices.clear();
+    employeeData.forEach((emp, index) => {
+        selectedEmployeeIndices.add(index);
+    });
+    
+    // Re-render the current view to show all checkboxes as checked
     const checkboxes = document.querySelectorAll('.employee-checkbox');
     checkboxes.forEach(checkbox => {
         checkbox.checked = true;
     });
+    
     updateSelection();
 }
 
 function clearAll() {
+    selectedEmployeeIndices.clear();
+    
+    // Re-render the current view to show all checkboxes as unchecked
     const checkboxes = document.querySelectorAll('.employee-checkbox');
     checkboxes.forEach(checkbox => {
         checkbox.checked = false;
     });
+    
     updateSelection();
 }
 
@@ -678,6 +706,7 @@ function startOver() {
     currentFormData = {};
     employeeData = [];
     selectedEmployees = [];
+    selectedEmployeeIndices.clear(); // Clear the selected indices
     document.getElementById('offsite-form').reset();
     document.getElementById('results').style.display = 'none';
     document.getElementById('file-preview').style.display = 'none';
