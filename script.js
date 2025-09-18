@@ -235,7 +235,10 @@ function populateEmployeeList() {
     function renderEmployees(employeesToShow = employeeData) {
         employeeList.innerHTML = '';
         
-        employeesToShow.forEach((employee) => {
+        // Sort employees alphabetically by name
+        const sortedEmployees = [...employeesToShow].sort((a, b) => a.name.localeCompare(b.name));
+        
+        sortedEmployees.forEach((employee) => {
             // Find the original index in the full employeeData array
             const originalIndex = employeeData.findIndex(emp => 
                 emp.name === employee.name && emp.location === employee.location
