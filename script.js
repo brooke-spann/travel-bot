@@ -123,11 +123,15 @@ function parseCSV(csvText) {
         const columns = parseCSVLine(line);
         if (columns.length >= 12) {
             const name = columns[0]?.trim();
+            const department = columns[5]?.trim(); // Column F (index 5)
+            const domain = columns[7]?.trim(); // Column H (index 7)
             const location = columns[11]?.trim(); // Column L (index 11)
             
             if (name) {
                 employees.push({
                     name: name,
+                    department: department || 'Unknown',
+                    domain: domain || 'Unknown',
                     location: location || 'Unknown',
                     category: categorizeLocation(location)
                 });
@@ -173,11 +177,15 @@ function parseExcel(arrayBuffer) {
         const row = jsonData[i];
         if (row && row.length >= 12) {
             const name = row[0]?.toString().trim();
+            const department = row[5]?.toString().trim(); // Column F (index 5)
+            const domain = row[7]?.toString().trim(); // Column H (index 7)
             const location = row[11]?.toString().trim(); // Column L (index 11)
             
             if (name) {
                 employees.push({
                     name: name,
+                    department: department || 'Unknown',
+                    domain: domain || 'Unknown',
                     location: location || 'Unknown',
                     category: categorizeLocation(location)
                 });
@@ -215,7 +223,7 @@ function showFilePreview(data, fileName) {
     previewHTML += '<strong>Sample employees:</strong><br>';
     
     previewData.forEach(emp => {
-        previewHTML += `${emp.name} - ${emp.location}<br>`;
+        previewHTML += `${emp.name} - ${emp.location} (${emp.department}, ${emp.domain})<br>`;
     });
     
     if (data.length > 10) {
@@ -231,6 +239,11 @@ function showFilePreview(data, fileName) {
 function populateEmployeeList() {
     const employeeList = document.getElementById('employee-list');
     const searchInput = document.getElementById('employee-search');
+    const departmentFilter = document.getElementById('department-filter');
+    const domainFilter = document.getElementById('domain-filter');
+    
+    // Populate filter dropdowns
+    populateFilters();
     
     function renderEmployees(employeesToShow = employeeData) {
         employeeList.innerHTML = '';
@@ -258,10 +271,17 @@ function populateEmployeeList() {
                        data-index="${originalIndex}" ${isSelected ? 'checked' : ''}>
                 <div class="employee-info">
                     <label for="emp-${originalIndex}" class="employee-name">${employee.name}</label>
-                    <div class="employee-location">
-                        <span class="location-badge ${locationClass}">
-                            ${locationIcon} ${employee.location}
-                        </span>
+                    <div class="employee-details">
+                        <div class="employee-location">
+                            <span class="location-badge ${locationClass}">
+                                ${locationIcon} ${employee.location}
+                            </span>
+                        </div>
+                        <div class="employee-metadata">
+                            <span class="metadata-item">${employee.department}</span>
+                            <span class="metadata-separator">•</span>
+                            <span class="metadata-item">${employee.domain}</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -285,14 +305,126 @@ function populateEmployeeList() {
     // Initial render
     renderEmployees();
     
-    // Search functionality
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredEmployees = employeeData.filter(emp => 
-            emp.name.toLowerCase().includes(searchTerm) ||
-            emp.location.toLowerCase().includes(searchTerm)
-        );
+    // Search and filter functionality
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedDepartment = departmentFilter.value;
+        const selectedDomain = domainFilter.value;
+        
+        const filteredEmployees = employeeData.filter(emp => {
+            const matchesSearch = emp.name.toLowerCase().includes(searchTerm) ||
+                                emp.location.toLowerCase().includes(searchTerm) ||
+                                emp.department.toLowerCase().includes(searchTerm) ||
+                                emp.domain.toLowerCase().includes(searchTerm);
+            
+            const matchesDepartment = !selectedDepartment || emp.department === selectedDepartment;
+            const matchesDomain = !selectedDomain || emp.domain === selectedDomain;
+            
+            return matchesSearch && matchesDepartment && matchesDomain;
+        });
+        
         renderEmployees(filteredEmployees);
+    }
+    
+    // Event listeners
+    searchInput.addEventListener('input', applyFilters);
+    departmentFilter.addEventListener('change', applyFilters);
+    domainFilter.addEventListener('change', applyFilters);
+}
+
+// Function to populate filter dropdowns
+function populateFilters() {
+    const departmentFilter = document.getElementById('department-filter');
+    const domainFilter = document.getElementById('domain-filter');
+    
+    // Get unique departments and domains
+    const departments = [...new Set(employeeData.map(emp => emp.department))].sort();
+    const domains = [...new Set(employeeData.map(emp => emp.domain))].sort();
+    
+    // Clear existing options (except "All" option)
+    departmentFilter.innerHTML = '<option value="">All Departments</option>';
+    domainFilter.innerHTML = '<option value="">All Domains</option>';
+    
+    // Populate department filter
+    departments.forEach(dept => {
+        if (dept && dept !== 'Unknown') {
+            const option = document.createElement('option');
+            option.value = dept;
+            option.textContent = dept;
+            departmentFilter.appendChild(option);
+        }
+    });
+    
+    // Populate domain filter
+    domains.forEach(domain => {
+        if (domain && domain !== 'Unknown') {
+            const option = document.createElement('option');
+            option.value = domain;
+            option.textContent = domain;
+            domainFilter.appendChild(option);
+        }
+    });
+}
+
+// Function to clear all filters
+function clearFilters() {
+    document.getElementById('employee-search').value = '';
+    document.getElementById('department-filter').value = '';
+    document.getElementById('domain-filter').value = '';
+    
+    // Re-render with all employees
+    const employeeList = document.getElementById('employee-list');
+    const sortedEmployees = [...employeeData].sort((a, b) => a.name.localeCompare(b.name));
+    
+    employeeList.innerHTML = '';
+    sortedEmployees.forEach((employee) => {
+        // Find the original index in the full employeeData array
+        const originalIndex = employeeData.findIndex(emp => 
+            emp.name === employee.name && emp.location === employee.location
+        );
+        
+        const item = document.createElement('div');
+        item.className = 'employee-item';
+        
+        const locationIcon = getLocationIcon(employee.category);
+        const locationClass = `location-${employee.category}`;
+        
+        // Check if this employee was previously selected using global tracking
+        const isSelected = selectedEmployeeIndices.has(originalIndex);
+        
+        item.innerHTML = `
+            <input type="checkbox" class="employee-checkbox" id="emp-${originalIndex}" 
+                   data-index="${originalIndex}" ${isSelected ? 'checked' : ''}>
+            <div class="employee-info">
+                <label for="emp-${originalIndex}" class="employee-name">${employee.name}</label>
+                <div class="employee-details">
+                    <div class="employee-location">
+                        <span class="location-badge ${locationClass}">
+                            ${locationIcon} ${employee.location}
+                        </span>
+                    </div>
+                    <div class="employee-metadata">
+                        <span class="metadata-item">${employee.department}</span>
+                        <span class="metadata-separator">•</span>
+                        <span class="metadata-item">${employee.domain}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        employeeList.appendChild(item);
+        
+        // Add event listener to the checkbox
+        const checkbox = item.querySelector('.employee-checkbox');
+        checkbox.addEventListener('change', function() {
+            const empIndex = parseInt(this.dataset.index);
+            if (this.checked) {
+                selectedEmployeeIndices.add(empIndex);
+            } else {
+                selectedEmployeeIndices.delete(empIndex);
+            }
+            updateSelection();
+        });
     });
 }
 
@@ -331,14 +463,11 @@ function updateSelection() {
 }
 
 function selectAll() {
-    selectedEmployeeIndices.clear();
-    employeeData.forEach((emp, index) => {
-        selectedEmployeeIndices.add(index);
-    });
-    
-    // Re-render the current view to show all checkboxes as checked
+    // Get currently visible checkboxes and select only those
     const checkboxes = document.querySelectorAll('.employee-checkbox');
     checkboxes.forEach(checkbox => {
+        const empIndex = parseInt(checkbox.dataset.index);
+        selectedEmployeeIndices.add(empIndex);
         checkbox.checked = true;
     });
     
@@ -346,11 +475,11 @@ function selectAll() {
 }
 
 function clearAll() {
-    selectedEmployeeIndices.clear();
-    
-    // Re-render the current view to show all checkboxes as unchecked
+    // Get currently visible checkboxes and clear only those
     const checkboxes = document.querySelectorAll('.employee-checkbox');
     checkboxes.forEach(checkbox => {
+        const empIndex = parseInt(checkbox.dataset.index);
+        selectedEmployeeIndices.delete(empIndex);
         checkbox.checked = false;
     });
     
