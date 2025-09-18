@@ -237,13 +237,13 @@ header p {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #F45D48, #0A8080);
+    background: #0A8080;
     color: white;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(244, 93, 72, 0.3);
+    box-shadow: 0 10px 20px rgba(10, 128, 128, 0.3);
 }
 
 .btn-secondary {
